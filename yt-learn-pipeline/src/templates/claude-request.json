@@ -1,0 +1,82 @@
+{
+  "_설명": "Claude API 호출 요청 바디. PA HTTP Action에서 사용. SYSTEM_PROMPT와 TRANSCRIPT는 PA 변수로 교체.",
+
+  "model": "claude-sonnet-4-5-20241022",
+  "max_tokens": 4096,
+  "system": "SYSTEM_PROMPT_HERE",
+  "messages": [
+    {
+      "role": "user",
+      "content": "아래 YouTube 영상의 자막을 분석하여 4계층 구조로 인사이트를 추출해주세요.\n\n영상 제목: VIDEO_TITLE_HERE\n\n자막:\nTRANSCRIPT_HERE"
+    }
+  ],
+  "output_config": {
+    "format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "video_analysis",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "one_line_thesis": {
+              "type": "string",
+              "description": "영상의 핵심 주장 한 문장"
+            },
+            "summary": {
+              "type": "string",
+              "description": "2~3문장 요약, 핵심 용어 포함"
+            },
+            "framework": {
+              "type": "string",
+              "description": "영상이 소개하는 사고 모델/프레임워크. 없으면 '없음'"
+            },
+            "relevance_to_picks": {
+              "type": "string",
+              "description": "Picks OPR 업무와의 구체적 연결점"
+            },
+            "challenges_assumption": {
+              "type": "string",
+              "description": "기존 가정을 뒤집는 인사이트. 없으면 '없음'"
+            },
+            "connects_to": {
+              "type": "string",
+              "description": "다른 개념/영상/프레임워크와의 연결점. 없으면 '없음'"
+            },
+            "apply_to_current": {
+              "type": "string",
+              "description": "지금 진행 중인 업무에 바로 적용할 변화 1~2개"
+            },
+            "apply_to_future": {
+              "type": "string",
+              "description": "다음 분기 이후 고려사항. 없으면 '없음'"
+            },
+            "next_action": {
+              "type": "string",
+              "description": "가장 먼저 할 한 가지. 바로 실행 가능한 수준"
+            },
+            "deadline": {
+              "type": "string",
+              "enum": ["이번 주", "이번 달", "다음 분기"]
+            },
+            "effort": {
+              "type": "string",
+              "enum": ["small", "medium", "large"]
+            },
+            "who": {
+              "type": "string",
+              "enum": ["solo", "team", "approval"]
+            }
+          },
+          "required": [
+            "one_line_thesis", "summary", "framework",
+            "relevance_to_picks", "challenges_assumption", "connects_to",
+            "apply_to_current", "apply_to_future",
+            "next_action", "deadline", "effort", "who"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}

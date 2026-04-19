@@ -1,0 +1,11 @@
+{
+  "_설명": "Notion Videos DB에서 같은 YouTube URL이 이미 있는지 확인하는 쿼리. PA HTTP Action 바디에 사용.",
+  "_PA변수": "VIDEO_URL → PA 변수 varVideoUrl 값으로 교체",
+
+  "filter": {
+    "property": "YouTube URL",
+    "url": {
+      "equals": "VIDEO_URL"
+    }
+  }
+}

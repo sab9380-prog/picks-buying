@@ -1,0 +1,27 @@
+{
+  "_설명": "Notion Videos DB에 새 레코드를 생성하는 요청 바디. Status를 'Processing'으로 시작.",
+  "_PA변수": "VIDEOS_DB_ID, VIDEO_TITLE, VIDEO_URL → PA 변수로 교체",
+
+  "parent": {
+    "database_id": "VIDEOS_DB_ID"
+  },
+  "properties": {
+    "Title": {
+      "title": [
+        {
+          "text": {
+            "content": "VIDEO_TITLE"
+          }
+        }
+      ]
+    },
+    "YouTube URL": {
+      "url": "VIDEO_URL"
+    },
+    "Status": {
+      "status": {
+        "name": "Processing"
+      }
+    }
+  }
+}

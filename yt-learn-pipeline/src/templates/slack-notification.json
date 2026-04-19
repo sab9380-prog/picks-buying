@@ -1,0 +1,18 @@
+{
+  "_설명": "Slack 완료/실패 알림 메시지 템플릿. PA Slack 커넥터 또는 HTTP Action으로 전송.",
+
+  "success": {
+    "channel": "SLACK_CHANNEL_ID",
+    "text": "✅ [VIDEO_TITLE] 분석 완료 — ONE_LINE_THESIS | 태스크: NEXT_ACTION"
+  },
+
+  "failure": {
+    "channel": "SLACK_CHANNEL_ID",
+    "text": "❌ [VIDEO_TITLE] 실패 — 사유: ERROR_MESSAGE"
+  },
+
+  "no_transcript": {
+    "channel": "SLACK_CHANNEL_ID",
+    "text": "⚠️ [VIDEO_TITLE] 자막 없음 — 자막이 없는 영상이라 분석을 건너뛰었습니다."
+  }
+}

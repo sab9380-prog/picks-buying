@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(mv ~/Downloads/product-plan.md ~/Downloads/evaluation-criteria.md yt-learn-pipeline/)",
+      "Bash(mv ~/Downloads/research.md yt-learn-pipeline/reference/)",
+      "Bash(mkdir -p \"C:/Users/KJY9380/Documents/AI 라이프\")",
+      "Bash(cp \"C:/Users/KJY9380/Desktop/youtube-learning/\"* \"C:/Users/KJY9380/Documents/AI 라이프/\")",
+      "Read(//c/Users/KJY9380/Documents/**)",
+      "Bash(claude mcp:*)",
+      "WebFetch(domain:developers.figma.com)",
+      "Bash(where 7z)",
+      "Read(//c/Program Files/7-Zip/**)",
+      "Read(//c/Program Files \\(x86\\)/7-Zip/**)",
+      "Bash(winget install:*)",
+      "Bash(\"C:/Program Files/7-Zip/7z.exe\" a -p485179 -mhe=on \"C:/Users/KJY9380/Documents/AI 라이프/API 키 등 민감정보.7z\" \"C:/Users/KJY9380/Documents/AI 라이프/API 키 등 민감정보.txt\")",
+      "Bash(\"C:/Program Files/7-Zip/7z.exe\" --help)",
+      "Bash(cmd.exe /c assoc .7z)",
+      "Bash(cmd.exe /c ftype 7-Zip.7z)",
+      "Bash(powershell -Command \"Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile\\(''C:\\\\Users\\\\KJY9380\\\\Documents\\\\AI 라이프\\\\API 키 등 민감정보.txt'', ''OnlyErrorDialogs'', ''SendToRecycleBin''\\)\")",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:supabase.com)",
+      "Bash(powershell -Command \"$ws = New-Object -ComObject WScript.Shell; $sc = $ws.CreateShortcut\\(''C:\\\\Users\\\\KJY9380\\\\Desktop\\\\Claude Code.lnk''\\); $sc.TargetPath = ''cmd.exe''; $sc.Arguments = ''/c cd /d \"\"C:\\\\Users\\\\KJY9380\\\\Documents\\\\AI 라이프\"\" && claude''; $sc.WorkingDirectory = ''C:\\\\Users\\\\KJY9380\\\\Documents\\\\AI 라이프''; $sc.Description = ''Claude Code - AI 라이프''; $sc.Save\\(\\)\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:/Users/KJY9380/Desktop/create_shortcut.ps1\")",
+      "Bash(node -e \":*)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(tasklist)",
+      "Bash(taskkill //F //IM claude.exe)",
+      "Bash(git --version)",
+      "Bash(npx wrangler *)",
+      "Bash(git -C \"C:/Users/KJY9380/Desktop/picks-buying\" init)",
+      "Bash(git -C \"C:/Users/KJY9380/Desktop/picks-buying\" branch -M main)",
+      "Bash(git -C \"C:/Users/KJY9380/Desktop/picks-buying\" add -A)",
+      "Bash(git -C \"C:/Users/KJY9380/Desktop/picks-buying\" commit -m \"Initial commit: picks-buying v0.5\")"
+    ]
+  }
+}

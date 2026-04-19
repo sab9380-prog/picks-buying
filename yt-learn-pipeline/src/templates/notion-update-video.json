@@ -1,0 +1,37 @@
+{
+  "_설명": "Notion Videos DB 레코드를 Claude 분석 결과로 업데이트. PA HTTP Action (PATCH) 바디에 사용.",
+  "_PA변수": "각 필드는 body('Parse_Analysis')?['필드명']으로 교체",
+
+  "properties": {
+    "Status": {
+      "status": { "name": "Processed" }
+    },
+    "One Line Thesis": {
+      "rich_text": [{ "text": { "content": "ONE_LINE_THESIS" } }]
+    },
+    "Summary": {
+      "rich_text": [{ "text": { "content": "SUMMARY" } }]
+    },
+    "Framework": {
+      "rich_text": [{ "text": { "content": "FRAMEWORK" } }]
+    },
+    "Relevance to Picks": {
+      "rich_text": [{ "text": { "content": "RELEVANCE_TO_PICKS" } }]
+    },
+    "Challenges Assumption": {
+      "rich_text": [{ "text": { "content": "CHALLENGES_ASSUMPTION" } }]
+    },
+    "Connects To": {
+      "rich_text": [{ "text": { "content": "CONNECTS_TO" } }]
+    },
+    "Apply to Current": {
+      "rich_text": [{ "text": { "content": "APPLY_TO_CURRENT" } }]
+    },
+    "Apply to Future": {
+      "rich_text": [{ "text": { "content": "APPLY_TO_FUTURE" } }]
+    },
+    "Processed At": {
+      "date": { "start": "CURRENT_DATETIME_ISO" }
+    }
+  }
+}

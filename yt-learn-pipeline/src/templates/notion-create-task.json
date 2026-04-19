@@ -1,0 +1,28 @@
+{
+  "_설명": "Notion Tasks DB에 실행 태스크 레코드를 생성. Videos DB와 Relation으로 연결.",
+  "_PA변수": "TASKS_DB_ID, NEXT_ACTION, DEADLINE_DATE, EFFORT, WHO, VIDEO_PAGE_ID → PA 변수로 교체",
+
+  "parent": {
+    "database_id": "TASKS_DB_ID"
+  },
+  "properties": {
+    "Task": {
+      "title": [{ "text": { "content": "NEXT_ACTION" } }]
+    },
+    "Deadline": {
+      "date": { "start": "DEADLINE_DATE" }
+    },
+    "Effort": {
+      "select": { "name": "EFFORT" }
+    },
+    "Who": {
+      "select": { "name": "WHO" }
+    },
+    "Source Video": {
+      "relation": [{ "id": "VIDEO_PAGE_ID" }]
+    },
+    "Completed": {
+      "checkbox": false
+    }
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+UsersKJY9380Desktop*.ps1
+UsersKJY9380Desktop*.vbs

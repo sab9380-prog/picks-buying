@@ -1,0 +1,31 @@
+{
+  "_설명": "Power Automate 플로우에서 사용하는 모든 설정값. 플로우 상단 '변수 초기화' 액션에 복사해서 사용.",
+
+  "slack": {
+    "channel_name": "yt-learn",
+    "bot_token": "xoxb-YOUR-SLACK-BOT-TOKEN",
+    "_bot_token_설명": "Slack App > OAuth > Bot User OAuth Token"
+  },
+
+  "notion": {
+    "api_token": "ntn_YOUR_NOTION_TOKEN",
+    "api_version": "2022-06-28",
+    "videos_db_id": "YOUR_VIDEOS_DB_ID",
+    "tasks_db_id": "YOUR_TASKS_DB_ID",
+    "_api_token_설명": "notion.so/my-integrations 에서 생성",
+    "_db_id_설명": "Notion DB 열기 > URL에서 notion.so/ 뒤 32자리"
+  },
+
+  "supadata": {
+    "api_key": "YOUR_SUPADATA_API_KEY",
+    "base_url": "https://api.supadata.ai/v1/youtube/transcript",
+    "_api_key_설명": "supadata.ai 가입 후 Dashboard > API Keys"
+  },
+
+  "claude": {
+    "api_key": "sk-ant-YOUR_CLAUDE_API_KEY",
+    "model": "claude-sonnet-4-5-20241022",
+    "max_tokens": 4096,
+    "_api_key_설명": "console.anthropic.com > API Keys"
+  }
+}
