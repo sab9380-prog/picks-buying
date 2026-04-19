@@ -1,3 +1,3 @@
 name = "picks-buying"
 compatibility_date = "2026-04-20"
-pages_build_output_dir = "."
+pages_build_output_dir = "dist"
