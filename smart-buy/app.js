@@ -1,15 +1,16 @@
 // 스마트 매입 — 메인 앱.
-// 단건/일괄 입력 → 진단 → IndexedDB 저장 → 카드/TOP20 렌더 → 결정.
+// 입력 → 진단 → IndexedDB 저장 → 대시보드/TOP20/전체 SKU 표 렌더 → 결정.
 
 import { normalizeBrandId } from './shared/brand-normalize.js';
 import { CATEGORY, GENDER, DECISION, EVENT } from './shared/constants.js';
 import {
   openDB, putOffer, putOffersBulk, putDiagnosis, putDecision,
-  listDecisions, getDecisionsBySku,
+  listDecisions, getDecisionsBySku, listOffers, listDiagnosesByBatch,
   putStaticAsset, getStaticAsset, seedStaticAssetsFromFetch
 } from './shared/db.js';
 import { diagnose } from './engine/diagnose.js';
 import { rankTop20, rankAll } from './engine/rank.js';
+import { renderDashboard } from './dashboard.js';
 
 // ── 상태 ────────────────────────────────────────────────────────────
 let db = null;
@@ -17,6 +18,7 @@ let centerPriceDB = null;
 let offerMcMap = null;
 let currentBatchId = null;
 let currentDiagnoses = [];
+let currentDecisions = [];
 let currentMode = 'bulk';
 
 // ── DOM 헬퍼 ────────────────────────────────────────────────────────
@@ -27,12 +29,16 @@ const status = (msg) => {
   bar.textContent = msg;
   bar.classList.add('show');
 };
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
 
 // ── 초기화 ──────────────────────────────────────────────────────────
 async function init() {
   status('초기화 중…');
   db = await openDB();
-  // 정적 자산 시드 (이미 있으면 skip)
   let cached = await getStaticAsset(db, 'center-price-db');
   if (!cached) {
     status('데이터 자산 시드 중…');
@@ -45,13 +51,36 @@ async function init() {
   }
   centerPriceDB = cached;
   offerMcMap = await getStaticAsset(db, 'offer-mc-map');
+
+  currentDecisions = await listDecisions(db);
+  await restoreLastBatch();
+
   bindUI();
   status('준비 완료. Excel 업로드 또는 단건 입력으로 시작.');
 }
 
+async function restoreLastBatch() {
+  try {
+    const all = await listOffers(db);
+    if (!all.length) return;
+    const latestBatch = all.map(o => o.batchId).filter(Boolean).sort().pop();
+    if (!latestBatch) return;
+    const offers = all.filter(o => o.batchId === latestBatch);
+    const stored = await listDiagnosesByBatch(db, latestBatch);
+    if (!stored.length) return;
+    const offerById = new Map(offers.map(o => [o.skuId, o]));
+    const diagnoses = stored.map(d => ({ ...d, offer: offerById.get(d.skuId) }));
+    currentBatchId = latestBatch;
+    currentDiagnoses = diagnoses;
+    $('#results-section').style.display = 'block';
+    renderAllTabs(diagnoses);
+  } catch (e) {
+    console.warn('마지막 batch 복원 실패:', e.message);
+  }
+}
+
 // ── UI 바인딩 ───────────────────────────────────────────────────────
 function bindUI() {
-  // 모드 토글
   $$('.mode-toggle button').forEach(b => {
     b.addEventListener('click', () => {
       currentMode = b.dataset.mode;
@@ -61,7 +90,6 @@ function bindUI() {
     });
   });
 
-  // 단건 폼
   $('#single-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -75,7 +103,6 @@ function bindUI() {
     await processOffers([offer]);
   });
 
-  // 파일 드롭
   const drop = $('#file-drop');
   const input = $('#file-input');
   drop.addEventListener('click', () => input.click());
@@ -89,13 +116,13 @@ function bindUI() {
     if (e.target.files[0]) await handleFile(e.target.files[0]);
   });
 
-  // 탭
   $$('.tabs button').forEach(b => {
     b.addEventListener('click', () => {
-      $$('.tabs button').forEach(x => x.classList.toggle('active', x === b));
       const tab = b.dataset.tab;
-      $('#tab-content-top20').style.display = tab === 'top20' ? 'block' : 'none';
-      $('#tab-content-all').style.display   = tab === 'all'   ? 'block' : 'none';
+      $$('.tabs button').forEach(x => x.classList.toggle('active', x === b));
+      $('#tab-content-dashboard').hidden = tab !== 'dashboard';
+      $('#tab-content-top20').hidden     = tab !== 'top20';
+      $('#tab-content-all').hidden       = tab !== 'all';
     });
   });
 }
@@ -103,7 +130,6 @@ function bindUI() {
 // ── Excel 처리 ──────────────────────────────────────────────────────
 async function handleFile(file) {
   status(`파일 로드 중: ${file.name}`);
-  // SheetJS lazy load
   if (!window.XLSX) {
     await new Promise((res, rej) => {
       const s = document.createElement('script');
@@ -123,9 +149,7 @@ async function handleFile(file) {
   await processOffers(offers);
 }
 
-// ── 오퍼 객체 변환 ──────────────────────────────────────────────────
 function parseRow(row, batchId, idx) {
-  // 컬럼명 case-insensitive lookup
   const get = (...keys) => {
     for (const k of keys) {
       const found = Object.keys(row).find(rk => rk.toUpperCase() === k.toUpperCase());
@@ -154,8 +178,7 @@ function parseRow(row, batchId, idx) {
 function toOffer(raw, batchId, idx) {
   const skuId = `${batchId}-${String(idx).padStart(4, '0')}-${(raw.brand || '').slice(0,4)}-${(raw.style || '').slice(0,8)}`.replace(/\s+/g, '_');
   return {
-    batchId,
-    skuId,
+    batchId, skuId,
     brand: raw.brand || '',
     brandId: normalizeBrandId(raw.brand),
     style: raw.style || '',
@@ -179,7 +202,6 @@ async function processOffers(offers) {
   await putOffersBulk(db, offers);
   currentBatchId = offers[0].batchId;
 
-  // 진단 + offer 첨부 (UI 표시용)
   const diagnoses = offers.map(o => {
     const d = diagnose(o, { centerPriceDB, offerMcMap });
     return { ...d, offer: o };
@@ -188,95 +210,69 @@ async function processOffers(offers) {
   currentDiagnoses = diagnoses;
 
   $('#results-section').style.display = 'block';
-  renderTop20(diagnoses);
-  renderAll(diagnoses);
-  status(`진단 완료 — ${diagnoses.length}건 (TOP 20 표시)`);
+  renderAllTabs(diagnoses);
+  status(`진단 완료 — ${diagnoses.length}건`);
 }
 
-// ── 렌더링 ──────────────────────────────────────────────────────────
-function renderTop20(diagnoses) {
+function renderAllTabs(diagnoses) {
+  renderDashboard($('#tab-content-dashboard'), diagnoses);
+  renderTopAndAllTables(diagnoses);
+}
+
+// Phase 3 임시 표 (Phase 4에서 sku-table.js로 분리·확장).
+function renderTopAndAllTables(diagnoses) {
   const top = rankTop20(diagnoses);
-  const container = $('#tab-content-top20');
-  if (!top.length) {
-    container.innerHTML = '<div class="empty-state">진단 결과 없음 (모두 키즈 제외 등)</div>';
+  renderSimpleTable($('#tab-content-top20'), top,  'top20-table',  true);
+  const all = rankAll(diagnoses);
+  renderSimpleTable($('#tab-content-all'),   all,  'all-sku-table', false);
+}
+
+function renderSimpleTable(container, list, testId, showRank) {
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state">데이터 없음</div>';
     return;
   }
-  // 표 + 카드 혼합
-  const rows = top.map((d, i) => `
-    <tr>
-      <td><b>${i + 1}</b></td>
-      <td>${esc(getOfferTitle(d))}</td>
-      <td><span class="grade-badge g-${d.heuristic.cls}">${esc(d.heuristic.label)}</span></td>
-      <td>${d.heuristic.total}</td>
-      <td>${d._rankScore}</td>
-      <td>${d.pricing.targetPriceKrw ? d.pricing.targetPriceKrw.toLocaleString() + '원' : '-'}</td>
-      <td>${d.pricing.centerPriceFound ? d.pricing.customerPsychPriceKrw.toLocaleString() + '원' : '<span style="color:var(--muted)">데이터 없음</span>'}</td>
-      <td class="actions-cell" data-skuid="${d.skuId}"></td>
-    </tr>
-  `).join('');
+  const rows = list.map((d, i) => {
+    const o = d.offer || {};
+    return `
+      <tr data-skuid="${esc(d.skuId)}">
+        <td class="num">${i + 1}</td>
+        <td>${esc(o.brand || '')}</td>
+        <td>${esc(o.style || '')}</td>
+        <td>${esc(o.color || '')}</td>
+        <td>${esc(o.size || '')}</td>
+        <td>${esc(o.category || '')}</td>
+        <td>${esc(o.gender || '')}</td>
+        <td>${esc(o.season || '')}</td>
+        <td class="num">${o.qty || 0}</td>
+        <td class="num">${(o.jsc || 0).toFixed(2)}</td>
+        <td class="num">${(o.rrp || 0).toFixed(2)}</td>
+        <td><span class="grade-badge g-${d.heuristic.cls}">${esc(d.heuristic.label)}</span></td>
+        <td class="num">${d.heuristic.total}</td>
+        <td class="actions-cell"></td>
+      </tr>`;
+  }).join('');
   container.innerHTML = `
-    <table data-testid="top20-table">
-      <thead>
-        <tr><th>#</th><th>SKU</th><th>등급</th><th>휴리스틱</th><th>랭크 점수</th><th>목표가</th><th>고객심리가</th><th>결정</th></tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
-  // 결정 버튼 동적 삽입 (XSS 방지)
-  for (const d of top) {
-    const cell = container.querySelector(`td.actions-cell[data-skuid="${d.skuId.replace(/"/g, '\\"')}"]`);
-    if (cell) cell.appendChild(renderActions(d));
+    <div class="table-wrap">
+      <table class="sku" data-testid="${testId}">
+        <thead><tr>
+          <th>#</th><th>브랜드</th><th>모델</th><th>컬러</th><th>사이즈</th>
+          <th>카테고리</th><th>성별</th><th>시즌</th><th>수량</th>
+          <th>JSC EUR</th><th>RRP EUR</th><th>등급</th><th>점수</th><th>결정</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  // 결정 버튼 — XSS 방지를 위해 동적 삽입
+  for (const d of list) {
+    const cell = container.querySelector(`tr[data-skuid="${cssEsc(d.skuId)}"] td.actions-cell`);
+    if (cell) cell.appendChild(buildDecisionButtons(d));
   }
 }
 
-function renderAll(diagnoses) {
-  const all = rankAll(diagnoses);
-  const container = $('#tab-content-all');
-  if (!all.length) { container.innerHTML = '<div class="empty-state">데이터 없음</div>'; return; }
-  container.innerHTML = '<div class="results"></div>';
-  const grid = container.querySelector('.results');
-  for (const d of all) grid.appendChild(buildCard(d));
-}
+function cssEsc(s) { return String(s).replace(/(["\\])/g, '\\$1'); }
 
-function buildCard(d) {
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.dataset.skuid = d.skuId;
-  card.innerHTML = `
-    <div>
-      <h3>${esc(getOfferTitle(d))}</h3>
-      <div class="sub">${esc(getOfferSub(d))}</div>
-    </div>
-    <div>
-      <span class="grade-badge g-${d.heuristic.cls}">${esc(d.heuristic.label)}</span>
-      <span style="font-size:12px;color:var(--muted);margin-left:8px;">총 ${d.heuristic.total}점 · 랭크 ${d._rankScore}</span>
-    </div>
-    <div class="scores">
-      <div>브랜드 <b>${d.heuristic.brand}</b></div>
-      <div>컬러 <b>${d.heuristic.color}</b></div>
-      <div>사이즈 <b>${d.heuristic.size}</b></div>
-      <div>가격 <b>${d.heuristic.price}</b></div>
-      <div>시즌 <b>${d.heuristic.season}</b></div>
-      <div>키워드 <b>${d.heuristic.keywordBonus >= 0 ? '+' : ''}${d.heuristic.keywordBonus}</b></div>
-    </div>
-    <div class="price-block">
-      <div><span>랜디드</span><b>${d.pricing.landedCostKrw ? d.pricing.landedCostKrw.toLocaleString() + '원' : '-'}</b></div>
-      <div><span>목표가</span><b>${d.pricing.targetPriceKrw ? d.pricing.targetPriceKrw.toLocaleString() + '원' : '-'}</b></div>
-      <div><span>고객심리가</span><b>${d.pricing.centerPriceFound ? d.pricing.customerPsychPriceKrw.toLocaleString() + '원' : '<span style="color:var(--muted)">데이터 없음</span>'}</b></div>
-      ${d.pricing.psychRatio ? `<div><span>심리가대비</span><b>${(d.pricing.psychRatio * 100).toFixed(1)}%</b></div>` : ''}
-    </div>
-    ${d.diagnosisItems?.decisionDeadline
-      ? `<div class="deadline">${d.diagnosisItems.decisionDeadline.tier} 결정시한 ${d.diagnosisItems.decisionDeadline.weeks}주</div>`
-      : ''}
-    ${d.diagnosisItems?.riskSignals?.length
-      ? `<div class="deadline" style="color:var(--counter)">⚠ ${d.diagnosisItems.riskSignals.join(', ')}</div>`
-      : ''}
-  `;
-  card.appendChild(renderActions(d));
-  return card;
-}
-
-function renderActions(d) {
+function buildDecisionButtons(d) {
   const wrap = document.createElement('div');
   wrap.className = 'actions';
   for (const action of [DECISION.BUY, DECISION.COUNTER, DECISION.PASS]) {
@@ -285,7 +281,7 @@ function renderActions(d) {
     b.textContent = action;
     b.dataset.testid = `btn-${action.toLowerCase()}`;
     b.dataset.skuid = d.skuId;
-    b.addEventListener('click', () => recordDecision(d, action, b));
+    b.addEventListener('click', (e) => { e.stopPropagation(); recordDecision(d, action, b); });
     wrap.appendChild(b);
   }
   return wrap;
@@ -301,26 +297,9 @@ async function recordDecision(diagnosis, decision, btn) {
     decidedAt: new Date().toISOString()
   };
   await putDecision(db, decisionObj);
-  // visual feedback
+  currentDecisions.push(decisionObj);
   btn.classList.add('decided');
   status(`결정 저장: ${decision} → ${diagnosis.skuId}`);
-}
-
-// ── helpers ─────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
-function getOfferTitle(d) {
-  if (d.offer) return `${d.offer.brand} ${d.offer.style}`;
-  return d.skuId;
-}
-function getOfferSub(d) {
-  if (d.offer) {
-    return `${d.offer.color} · ${d.offer.size} · ${d.offer.category}/${d.offer.gender} · ${d.offer.season || '시즌미상'}`;
-  }
-  return d.heuristic.keywordMatched.join(', ') || '키워드 없음';
 }
 
 // ── 시작 ───────────────────────────────────────────────────────────
@@ -329,7 +308,6 @@ init().catch(e => {
   status('초기화 실패: ' + e.message);
 });
 
-// 옆 메뉴 통합 디버그용: 결정 이벤트 콘솔 로그
 window.addEventListener(EVENT.DECISION_MADE, (e) => {
   console.log('[picks:decision-made]', e.detail);
 });
