@@ -249,8 +249,17 @@ async function handleDecision({ diagnosis, decision, memo }) {
   };
   await putDecision(db, decisionObj);
   currentDecisions.push(decisionObj);
+  syncDecisionVisuals(diagnosis.skuId, decision);
   status(`결정 저장: ${decision} → ${diagnosis.skuId}`);
   return decisionObj;
+}
+
+// 같은 SKU의 모든 결정 버튼(다른 탭 포함)에 'decided' 클래스 동기화.
+function syncDecisionVisuals(skuId, decision) {
+  const safeSku = skuId.replace(/(["\\])/g, '\\$1');
+  document.querySelectorAll(`tr[data-skuid="${safeSku}"] .actions button`).forEach(btn => {
+    btn.classList.toggle('decided', btn.dataset.testid === `btn-${decision.toLowerCase()}`);
+  });
 }
 
 // ── 시작 ───────────────────────────────────────────────────────────
