@@ -1,14 +1,35 @@
 // 대시보드(전체 오퍼) 탭 렌더러.
-// SVG 막대그래프는 vanilla(의존성 0). 50줄 헬퍼.
+// SVG 막대그래프는 vanilla(의존성 0). 컬러는 design-tokens.css에서 lookup.
 
 import { aggregateOffer } from './engine/aggregate.js';
+
+// ── 디자인 토큰 lookup (SVG fill 속성에 CSS var 직접 사용 불가) ──
+const _tokenCache = {};
+function tokenColor(name, fallback = '#000') {
+  if (_tokenCache[name]) return _tokenCache[name];
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return (_tokenCache[name] = v || fallback);
+}
+// 자주 쓰는 토큰 alias
+const T = {
+  // 차트 팔레트
+  c1: () => tokenColor('--chart-color-1'),
+  c2: () => tokenColor('--chart-color-2'),
+  c3: () => tokenColor('--chart-color-3'),
+  c6: () => tokenColor('--chart-color-6'),
+  // 텍스트
+  txtSecondary: () => tokenColor('--text-secondary'),
+  txtPrimary:   () => tokenColor('--text-primary')
+};
 
 // ── SVG 막대그래프 헬퍼 ─────────────────────────────────────────
 // data: [{ label, value, qty? }]  opts: { width, height, color, valueFmt }
 function renderBarChart(container, data, opts = {}) {
   const W = opts.width  || 280;
   const H = opts.height || (data.length * 22 + 8);
-  const color = opts.color || '#4d9aff';
+  const color = opts.color || T.c1();
+  const labelColor = opts.labelColor || T.txtSecondary();
+  const valueColor = opts.valueColor || T.txtPrimary();
   const valueFmt = opts.valueFmt || (v => String(v));
   const max = Math.max(1, ...data.map(d => Number(d.value) || 0));
   const labelW = 110;
@@ -22,9 +43,9 @@ function renderBarChart(container, data, opts = {}) {
     const safeLabel = String(d.label).replace(/&/g, '&amp;').replace(/</g, '&lt;');
     return `
       <g>
-        <text x="0" y="${y + 12}" font-size="11" fill="#8a93a4">${safeLabel}</text>
-        <rect x="${labelW}" y="${y + 4}" width="${w}" height="14" fill="${color}" rx="2" />
-        <text x="${labelW + w + 4}" y="${y + 14}" font-size="10" fill="#e6e8ee">${valueFmt(v, d)}</text>
+        <text x="0" y="${y + 12}" font-size="11" fill="${labelColor}">${safeLabel}</text>
+        <rect x="${labelW}" y="${y + 4}" width="${w}" height="14" fill="${color}" rx="3" />
+        <text x="${labelW + w + 4}" y="${y + 14}" font-size="10" fill="${valueColor}">${valueFmt(v, d)}</text>
       </g>`;
   }).join('');
 
@@ -167,7 +188,7 @@ export function renderDashboard(container, diagnoses, offers = null) {
   renderBarChart(
     container.querySelector('#dash-grade-dist'),
     gradeData,
-    { width: 600, color: '#4d9aff', valueFmt: (v, d) => `${v}건 / ${fmtNum(d.qty)}수량` }
+    { width: 600, color: T.c1(), valueFmt: (v, d) => `${v}건 / ${fmtNum(d.qty)}수량` }
   );
 
   // 통계 7종
@@ -207,7 +228,7 @@ export function renderDashboard(container, diagnoses, offers = null) {
     const buckets = a.priceBuckets[kind];
     const data = Object.entries(buckets).map(([k, v]) => ({ label: k + ' EUR', value: v }));
     renderBarChart(container.querySelector('#stat-price'), data,
-      { color: kind === 'jsc' ? '#2ecc71' : '#f39c12', valueFmt: (v) => `${v}건` });
+      { color: kind === 'jsc' ? T.c2() : T.c3(), valueFmt: (v) => `${v}건` });
   };
   renderPrice('jsc');
   container.querySelectorAll('.toggle-bucket button').forEach(btn => {
@@ -222,12 +243,12 @@ export function renderDashboard(container, diagnoses, offers = null) {
     .sort((x, y) => x[0].localeCompare(y[0]))
     .map(([k, v]) => ({ label: k, value: v }));
   renderBarChart(container.querySelector('#summary-arrival'), arrivalData,
-    { color: '#4d9aff', valueFmt: (v) => `${fmtNum(v)} qty` });
+    { color: T.c1(), valueFmt: (v) => `${fmtNum(v)} qty` });
   const channelData = Object.entries(a.channels)
     .sort((x, y) => y[1] - x[1])
     .map(([k, v]) => ({ label: k || '미상', value: v }));
   renderBarChart(container.querySelector('#summary-channel'), channelData,
-    { color: '#e67e22', valueFmt: (v) => `${fmtNum(v)} qty` });
+    { color: T.c6(), valueFmt: (v) => `${fmtNum(v)} qty` });
 
   return a;
 }

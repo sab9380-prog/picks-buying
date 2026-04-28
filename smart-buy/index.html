@@ -338,20 +338,78 @@
     color: var(--text-tertiary);
   }
 
-  .dash-chart { padding: 4px; }
-  .dash-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .dash-stat { background: var(--panel-2); border-radius: 6px; padding: 12px; }
-  .dash-stat h4 { display: flex; justify-content: space-between; align-items: center; }
-  .toggle-bucket { display: inline-flex; gap: 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-  .toggle-bucket button { background: transparent; border: 0; color: var(--muted);
-                          padding: 2px 8px; cursor: pointer; font-size: 10px; }
-  .toggle-bucket button.active { background: var(--accent); color: #fff; }
+  .dash-chart { padding: var(--space-1); }
+  .dash-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  .dash-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+    padding: var(--space-4);
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .dash-stat:hover { border-color: var(--border-default); }
+  .dash-stat h4 {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  /* Segmented control inside dash-stat headers (가격대 JSC/RRP toggle) */
+  .toggle-bucket {
+    display: inline-flex; gap: 2px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-sm);
+    background: var(--bg-base);
+    padding: 2px;
+  }
+  .toggle-bucket button {
+    background: transparent; border: 0;
+    color: var(--text-secondary);
+    padding: 2px var(--space-2);
+    cursor: pointer;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    border-radius: 3px;
+    transition: color var(--dur-fast) var(--ease-standard),
+                background var(--dur-fast) var(--ease-standard);
+  }
+  .toggle-bucket button:hover { color: var(--text-primary); }
+  .toggle-bucket button.active {
+    background: var(--accent-primary);
+    color: #fff;
+    font-weight: var(--fw-semibold);
+  }
 
-  .dash-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .dash-summary-card { background: var(--panel-2); border-radius: 6px; padding: 12px; }
-  .buy-rate-cmp div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
-  .buy-rate-cmp b { color: var(--accent); font-size: 14px; }
-  .buy-rate-note { color: var(--muted); font-size: 10px !important; padding-top: 4px !important; border-top: 1px dashed var(--border); }
+  .dash-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+  .dash-summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+    padding: var(--space-4);
+  }
+  .buy-rate-cmp div {
+    display: flex; justify-content: space-between;
+    padding: var(--space-1) 0;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+  .buy-rate-cmp b {
+    color: var(--accent-primary);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+  .buy-rate-note {
+    color: var(--text-tertiary);
+    font-size: var(--fs-xs) !important;
+    padding-top: var(--space-2) !important;
+    border-top: 1px dashed var(--border-subtle);
+  }
 
   /* === SKU table === */
   .table-layout {
