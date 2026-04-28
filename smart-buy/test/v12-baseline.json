@@ -1,0 +1,1411 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "generated_at": "2026-04-28",
+    "oracle": "_oracle/v12-functions.mjs",
+    "count": 50,
+    "coverage": {
+      "total": 50,
+      "byCategory": {
+        "FOOTWEAR": 27,
+        "APPAREL": 18,
+        "ACCESSORY": 5
+      },
+      "byBrand": {
+        "ADIDAS": 16,
+        "NIKE": 11,
+        "NEW BALANCE": 11,
+        "LACOSTE": 5,
+        "BURBERRY": 1,
+        "ACNE STUDIOS": 1,
+        "CARHARTT": 1,
+        "POLO RALPH LAUREN": 1,
+        "GANNI": 1,
+        "TOTEME": 1,
+        "STUDIO NICHOLSON": 1
+      },
+      "edgeCases": [
+        "COLOR_MULTI:9060",
+        "KIDS:KIDS SAMBA",
+        "PRICE_MISSING:AIR MAX 1",
+        "SEASON_MISSING:574 LEGACY",
+        "COLOR_MULTI:PRINT MAXI DRESS"
+      ]
+    }
+  },
+  "baseline": [
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "SAMBA OG",
+        "color": "CORE BLACK",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 60,
+        "rrp": 120,
+        "season": "SS26",
+        "sports": "ORIGINALS"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 10,
+        "total": 83,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "최우선 매입",
+        "cls": "80"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "GAZELLE",
+        "color": "CWHITE",
+        "size": "38",
+        "category": "FOOTWEAR",
+        "gender": "WOMEN",
+        "product": "SNEAKERS",
+        "jsc": 55,
+        "rrp": 110,
+        "season": "FW25",
+        "sports": "ORIGINALS"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 81,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "최우선 매입",
+        "cls": "80"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "CAMPUS 00s",
+        "color": "NAVY",
+        "size": "40",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 50,
+        "rrp": 110,
+        "season": "SS25",
+        "sports": "ORIGINALS"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 12,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 73,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "STAN SMITH",
+        "color": "WHITE GREEN",
+        "size": "41",
+        "category": "FOOTWEAR",
+        "gender": "UNISEX",
+        "product": "SNEAKERS",
+        "jsc": 45,
+        "rrp": 100,
+        "season": "SS24",
+        "sports": "ORIGINALS"
+      },
+      "expected": {
+        "brand": 29,
+        "color": 18,
+        "size": 20,
+        "price": 3,
+        "season": 5,
+        "total": 75,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "ULTRABOOST 22",
+        "color": "TRIPLE BLACK",
+        "size": "43",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 80,
+        "rrp": 180,
+        "season": "SS26",
+        "sports": "RUNNING"
+      },
+      "expected": {
+        "brand": 24,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 10,
+        "total": 77,
+        "keywordBonus": 4,
+        "keywordMatched": [
+          "Boost 계열(+4)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "PREDATOR FG",
+        "color": "BLACK RED",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "BOOTS",
+        "jsc": 70,
+        "rrp": 200,
+        "season": "SS25",
+        "sports": "FOOTBALL"
+      },
+      "expected": {
+        "brand": 8,
+        "color": 11,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 50,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "HANDBALL SPEZIAL",
+        "color": "ROYAL BLUE",
+        "size": "40",
+        "category": "FOOTWEAR",
+        "gender": "UNISEX",
+        "product": "SNEAKERS",
+        "jsc": 55,
+        "rrp": 130,
+        "season": "FW25",
+        "sports": "ORIGINALS"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 10,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 71,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "SUPERSTAR",
+        "color": "WHITE BLACK",
+        "size": "39",
+        "category": "FOOTWEAR",
+        "gender": "WOMEN",
+        "product": "SNEAKERS",
+        "jsc": 40,
+        "rrp": 100,
+        "season": "SS24",
+        "sports": "ORIGINALS"
+      },
+      "expected": {
+        "brand": 29,
+        "color": 18,
+        "size": 20,
+        "price": 3,
+        "season": 5,
+        "total": 75,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "TREFOIL HOODIE",
+        "color": "BLACK",
+        "size": "L",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "HOODIE",
+        "jsc": 45,
+        "rrp": 90,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 19,
+        "color": 20,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 59,
+        "keywordBonus": 1,
+        "keywordMatched": [
+          "플리스·후드·니트(+1)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "FIREBIRD TRACK TOP",
+        "color": "NAVY WHITE",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "JACKET",
+        "jsc": 50,
+        "rrp": 100,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 18,
+        "color": 18,
+        "size": 9,
+        "price": 3,
+        "season": 10,
+        "total": 58,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "ESSENTIAL CREWNECK",
+        "color": "GREY HEATHER",
+        "size": "XL",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "SWEATSHIRT",
+        "jsc": 30,
+        "rrp": 65,
+        "season": "FW24"
+      },
+      "expected": {
+        "brand": 21,
+        "color": 14,
+        "size": 9,
+        "price": 3,
+        "season": 5,
+        "total": 52,
+        "keywordBonus": 3,
+        "keywordMatched": [
+          "베이직 스테디셀러(+2)",
+          "플리스·후드·니트(+1)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "LOGO TEE",
+        "color": "WHITE",
+        "size": "S",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "TEE",
+        "jsc": 18,
+        "rrp": 40,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 21,
+        "color": 20,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 61,
+        "keywordBonus": 3,
+        "keywordMatched": [
+          "로고 강조(+3)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "3-STRIPES PANTS",
+        "color": "BLACK",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "PANTS",
+        "jsc": 35,
+        "rrp": 80,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 18,
+        "color": 20,
+        "size": 9,
+        "price": 3,
+        "season": 10,
+        "total": 60,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "SHOULDER BAG",
+        "color": "BLACK",
+        "size": "OS",
+        "category": "ACCESSORY",
+        "gender": "UNISEX",
+        "product": "BAG",
+        "jsc": 22,
+        "rrp": 50,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 18,
+        "color": 20,
+        "size": 12,
+        "price": 3,
+        "season": 8,
+        "total": 61,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "CAP TREFOIL",
+        "color": "OLIVE",
+        "size": "OS",
+        "category": "ACCESSORY",
+        "gender": "UNISEX",
+        "product": "CAP",
+        "jsc": 12,
+        "rrp": 30,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 18,
+        "color": 13,
+        "size": 12,
+        "price": 3,
+        "season": 10,
+        "total": 56,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "AIR FORCE 1",
+        "color": "WHITE",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 65,
+        "rrp": 130,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 10,
+        "total": 83,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "최우선 매입",
+        "cls": "80"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "DUNK LOW",
+        "color": "PANDA BLACK WHITE",
+        "size": "40",
+        "category": "FOOTWEAR",
+        "gender": "UNISEX",
+        "product": "SNEAKERS",
+        "jsc": 60,
+        "rrp": 130,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 18,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 79,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "AIR MAX 90",
+        "color": "INFRARED",
+        "size": "43",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 70,
+        "rrp": 150,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 26,
+        "color": 11,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 68,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "AIR MAX 95",
+        "color": "NEON YELLOW",
+        "size": "41",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 75,
+        "rrp": 160,
+        "season": "SS24"
+      },
+      "expected": {
+        "brand": 26,
+        "color": 2,
+        "size": 20,
+        "price": 3,
+        "season": 5,
+        "total": 56,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "BLAZER MID 77",
+        "color": "WHITE BLACK",
+        "size": "40",
+        "category": "FOOTWEAR",
+        "gender": "UNISEX",
+        "product": "SNEAKERS",
+        "jsc": 50,
+        "rrp": 110,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 24,
+        "color": 18,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 73,
+        "keywordBonus": -2,
+        "keywordMatched": [
+          "정장류 (타겟 미스매치)(-2)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "JORDAN 1 LOW",
+        "color": "BRED",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 70,
+        "rrp": 145,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 24,
+        "color": 11,
+        "size": 20,
+        "price": 3,
+        "season": 10,
+        "total": 68,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "PEGASUS 40",
+        "color": "BLACK",
+        "size": "43",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 60,
+        "rrp": 140,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 18,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 69,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "TECH FLEECE HOODIE",
+        "color": "GREY",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "HOODIE",
+        "jsc": 60,
+        "rrp": 130,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 21,
+        "color": 14,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 55,
+        "keywordBonus": 1,
+        "keywordMatched": [
+          "플리스·후드·니트(+1)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "WINDBREAKER",
+        "color": "BLACK",
+        "size": "L",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "JACKET",
+        "jsc": 50,
+        "rrp": 110,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 20,
+        "color": 20,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 60,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "BACKPACK ELITE",
+        "color": "BLACK",
+        "size": "OS",
+        "category": "ACCESSORY",
+        "gender": "UNISEX",
+        "product": "BACKPACK",
+        "jsc": 30,
+        "rrp": 75,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 22,
+        "color": 20,
+        "size": 12,
+        "price": 3,
+        "season": 10,
+        "total": 67,
+        "keywordBonus": 2,
+        "keywordMatched": [
+          "프리미엄 잡화(+2)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "990v6",
+        "color": "GREY",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 130,
+        "rrp": 280,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 14,
+        "size": 20,
+        "price": 3,
+        "season": 10,
+        "total": 77,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "530",
+        "color": "WHITE SILVER",
+        "size": "41",
+        "category": "FOOTWEAR",
+        "gender": "WOMEN",
+        "product": "SNEAKERS",
+        "jsc": 50,
+        "rrp": 110,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 81,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "최우선 매입",
+        "cls": "80"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "574",
+        "color": "NAVY",
+        "size": "40",
+        "category": "FOOTWEAR",
+        "gender": "UNISEX",
+        "product": "SNEAKERS",
+        "jsc": 45,
+        "rrp": 100,
+        "season": "FW24"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 12,
+        "size": 20,
+        "price": 3,
+        "season": 5,
+        "total": 70,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "550",
+        "color": "WHITE GREEN",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 55,
+        "rrp": 120,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 18,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 79,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "2002R",
+        "color": "BLACK",
+        "size": "43",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 70,
+        "rrp": 160,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 28,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 79,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "996",
+        "color": "BURGUNDY",
+        "size": "38",
+        "category": "FOOTWEAR",
+        "gender": "WOMEN",
+        "product": "SNEAKERS",
+        "jsc": 55,
+        "rrp": 130,
+        "season": "SS24"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 11,
+        "size": 20,
+        "price": 3,
+        "season": 5,
+        "total": 69,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "327",
+        "color": "CAMEL",
+        "size": "39",
+        "category": "FOOTWEAR",
+        "gender": "UNISEX",
+        "product": "SNEAKERS",
+        "jsc": 50,
+        "rrp": 110,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 26,
+        "color": 16,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 73,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "9060",
+        "color": "CAMO PRINTED",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 75,
+        "rrp": 170,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 26,
+        "color": 4,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 61,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "ATHLETICS SWEATSHIRT",
+        "color": "OATMEAL",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "SWEATSHIRT",
+        "jsc": 35,
+        "rrp": 80,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 23,
+        "color": 16,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 59,
+        "keywordBonus": 1,
+        "keywordMatched": [
+          "플리스·후드·니트(+1)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "NB CLASSIC HAT",
+        "color": "BLACK",
+        "size": "OS",
+        "category": "ACCESSORY",
+        "gender": "UNISEX",
+        "product": "CAP",
+        "jsc": 12,
+        "rrp": 28,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 24,
+        "color": 20,
+        "size": 12,
+        "price": 3,
+        "season": 10,
+        "total": 69,
+        "keywordBonus": 2,
+        "keywordMatched": [
+          "베이직 스테디셀러(+2)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "LACOSTE",
+        "name": "L.12.12 POLO",
+        "color": "NAVY",
+        "size": "L",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "POLO",
+        "jsc": 40,
+        "rrp": 90,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 22,
+        "color": 12,
+        "size": 9,
+        "price": 3,
+        "season": 10,
+        "total": 56,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "LACOSTE",
+        "name": "CARNABY EVO",
+        "color": "WHITE",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 50,
+        "rrp": 110,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 22,
+        "color": 20,
+        "size": 20,
+        "price": 3,
+        "season": 8,
+        "total": 73,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "LACOSTE",
+        "name": "CROC HOODIE",
+        "color": "GREEN",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "HOODIE",
+        "jsc": 45,
+        "rrp": 100,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 23,
+        "color": 13,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 56,
+        "keywordBonus": 1,
+        "keywordMatched": [
+          "플리스·후드·니트(+1)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "LACOSTE",
+        "name": "SPORT TEE",
+        "color": "WHITE NAVY",
+        "size": "S",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "TEE",
+        "jsc": 25,
+        "rrp": 55,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 22,
+        "color": 18,
+        "size": 9,
+        "price": 3,
+        "season": 10,
+        "total": 62,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "LACOSTE",
+        "name": "TENNIS SHORT",
+        "color": "WHITE",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "SHORTS",
+        "jsc": 28,
+        "rrp": 65,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 22,
+        "color": 20,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 62,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "BURBERRY",
+        "name": "CHECK SCARF",
+        "color": "BEIGE",
+        "size": "OS",
+        "category": "ACCESSORY",
+        "gender": "UNISEX",
+        "product": "SCARF",
+        "jsc": 220,
+        "rrp": 480,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 16,
+        "size": 12,
+        "price": 3,
+        "season": 8,
+        "total": 69,
+        "keywordBonus": 2,
+        "keywordMatched": [
+          "프리미엄 잡화(+2)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "ACNE STUDIOS",
+        "name": "OVERSIZED LOGO HOODIE",
+        "color": "STONE GREY",
+        "size": "L",
+        "category": "APPAREL",
+        "gender": "UNISEX",
+        "product": "HOODIE",
+        "jsc": 180,
+        "rrp": 380,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 14,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 64,
+        "keywordBonus": 6,
+        "keywordMatched": [
+          "로고 강조(+3)",
+          "오버사이즈 트렌드(+2)",
+          "플리스·후드·니트(+1)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "CARHARTT",
+        "name": "CHORE COAT",
+        "color": "BROWN",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "JACKET",
+        "jsc": 95,
+        "rrp": 200,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 24,
+        "color": 13,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 57,
+        "keywordBonus": 2,
+        "keywordMatched": [
+          "데님(+2)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "POLO RALPH LAUREN",
+        "name": "CLASSIC OXFORD SHIRT",
+        "color": "WHITE",
+        "size": "L",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "SHIRT",
+        "jsc": 55,
+        "rrp": 130,
+        "season": "SS25"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 20,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 70,
+        "keywordBonus": 2,
+        "keywordMatched": [
+          "베이직 스테디셀러(+2)"
+        ],
+        "label": "적극 권장",
+        "cls": "70"
+      }
+    },
+    {
+      "input": {
+        "brand": "ADIDAS",
+        "name": "KIDS SAMBA",
+        "color": "WHITE",
+        "size": "32",
+        "category": "FOOTWEAR",
+        "gender": "KIDS",
+        "product": "SNEAKERS",
+        "jsc": 35,
+        "rrp": 75,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 0,
+        "color": 0,
+        "size": 0,
+        "price": 0,
+        "season": 0,
+        "total": 0,
+        "keywordBonus": 0,
+        "keywordMatched": [
+          "키즈 매입 제외"
+        ],
+        "label": "패스",
+        "cls": "0"
+      }
+    },
+    {
+      "input": {
+        "brand": "NIKE",
+        "name": "AIR MAX 1",
+        "color": "WHITE",
+        "size": "42",
+        "category": "FOOTWEAR",
+        "gender": "MEN",
+        "product": "SNEAKERS",
+        "jsc": 0,
+        "rrp": 0,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 30,
+        "color": 20,
+        "size": 20,
+        "price": 5,
+        "season": 10,
+        "total": 85,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "최우선 매입",
+        "cls": "80"
+      }
+    },
+    {
+      "input": {
+        "brand": "NEW BALANCE",
+        "name": "574 LEGACY",
+        "color": "GREY",
+        "size": "40",
+        "category": "FOOTWEAR",
+        "gender": "WOMEN",
+        "product": "SNEAKERS",
+        "jsc": 45,
+        "rrp": 100,
+        "season": ""
+      },
+      "expected": {
+        "brand": 30,
+        "color": 14,
+        "size": 20,
+        "price": 3,
+        "season": 1,
+        "total": 68,
+        "keywordBonus": 5,
+        "keywordMatched": [
+          "헤리티지·레트로(+5)"
+        ],
+        "label": "조건부",
+        "cls": "60"
+      }
+    },
+    {
+      "input": {
+        "brand": "GANNI",
+        "name": "PRINT MAXI DRESS",
+        "color": "LEOPARD ANIMAL PRINT",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "DRESS",
+        "jsc": 80,
+        "rrp": 180,
+        "season": "SS26"
+      },
+      "expected": {
+        "brand": 22,
+        "color": 4,
+        "size": 9,
+        "price": 3,
+        "season": 10,
+        "total": 48,
+        "keywordBonus": 0,
+        "keywordMatched": [],
+        "label": "패스",
+        "cls": "0"
+      }
+    },
+    {
+      "input": {
+        "brand": "TOTEME",
+        "name": "CASHMERE COAT",
+        "color": "CAMEL",
+        "size": "S",
+        "category": "APPAREL",
+        "gender": "WOMEN",
+        "product": "COAT",
+        "jsc": 250,
+        "rrp": 580,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 17,
+        "color": 16,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 53,
+        "keywordBonus": 3,
+        "keywordMatched": [
+          "프리미엄 아우터(+3)"
+        ],
+        "label": "신중",
+        "cls": "50"
+      }
+    },
+    {
+      "input": {
+        "brand": "STUDIO NICHOLSON",
+        "name": "WIDE LEG TROUSER",
+        "color": "NAVY",
+        "size": "M",
+        "category": "APPAREL",
+        "gender": "MEN",
+        "product": "PANTS",
+        "jsc": 110,
+        "rrp": 240,
+        "season": "FW25"
+      },
+      "expected": {
+        "brand": 16,
+        "color": 12,
+        "size": 9,
+        "price": 3,
+        "season": 8,
+        "total": 48,
+        "keywordBonus": 2,
+        "keywordMatched": [
+          "오버사이즈 트렌드(+2)"
+        ],
+        "label": "패스",
+        "cls": "0"
+      }
+    }
+  ]
+}
