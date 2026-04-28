@@ -14,6 +14,7 @@ import { rankTop20, rankAll } from './engine/rank.js';
 // ── 상태 ────────────────────────────────────────────────────────────
 let db = null;
 let centerPriceDB = null;
+let offerMcMap = null;
 let currentBatchId = null;
 let currentDiagnoses = [];
 let currentMode = 'bulk';
@@ -43,6 +44,7 @@ async function init() {
     }
   }
   centerPriceDB = cached;
+  offerMcMap = await getStaticAsset(db, 'offer-mc-map');
   bindUI();
   status('준비 완료. Excel 업로드 또는 단건 입력으로 시작.');
 }
@@ -179,7 +181,7 @@ async function processOffers(offers) {
 
   // 진단 + offer 첨부 (UI 표시용)
   const diagnoses = offers.map(o => {
-    const d = diagnose(o, { centerPriceDB });
+    const d = diagnose(o, { centerPriceDB, offerMcMap });
     return { ...d, offer: o };
   });
   for (const d of diagnoses) await putDiagnosis(db, d);

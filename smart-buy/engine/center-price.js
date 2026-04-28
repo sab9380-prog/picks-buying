@@ -1,6 +1,20 @@
 // CENTER_PRICE_DB 조회 — v12 getCenterPrice 로직 이식.
-// MC 아이템명 매칭(OFFER_TO_MC_MAP) + 부분 매칭 fallback.
+// MC 아이템명 매칭(OFFER_TO_MC_MAP) + 부분 매칭 fallback + brandId 정규화 매칭.
 import { inferProductType, normCat } from '../_oracle/v12-functions.mjs';
+import { normalizeBrandId } from '../shared/brand-normalize.js';
+
+// brandId → entry 캐시 (centerPriceDB 인스턴스 기준).
+let _idMapCache = null;
+function getBrandIdMap(centerPriceDB) {
+  if (_idMapCache && _idMapCache.db === centerPriceDB) return _idMapCache.map;
+  const map = new Map();
+  for (const k of Object.keys(centerPriceDB.brands || {})) {
+    const id = normalizeBrandId(k);
+    if (id && !map.has(id)) map.set(id, centerPriceDB.brands[k]);
+  }
+  _idMapCache = { db: centerPriceDB, map };
+  return map;
+}
 
 // data/offer-mc-map.json은 호출자가 메모리에 로드한 뒤 전달
 export function offerToMcKey(offerMcMap, category, gender, product, name) {
@@ -54,6 +68,16 @@ export function lookupCenterPrice(centerPriceDB, offer, offerMcMap = null) {
     const k = keys.find(k => k.includes(cand) || (cand.length > 2 && cand.includes(k)));
     if (k) { entry = centerPriceDB.brands[k]; break; }
   }
+
+  // brandId 정규화 매칭 (예: "NEW BALANCE" → 'newbalance' → '뉴발란스' DB 키)
+  if (!entry) {
+    const wantId = offer.brandId || normalizeBrandId(brandKey);
+    if (wantId) {
+      const idMap = getBrandIdMap(centerPriceDB);
+      if (idMap.has(wantId)) entry = idMap.get(wantId);
+    }
+  }
+
   if (!entry || !entry.by_cat) return null;
 
   // 2) MC 아이템명 변환 (offerMcMap 있으면)

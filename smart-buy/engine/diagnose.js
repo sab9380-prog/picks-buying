@@ -142,7 +142,7 @@ export function diagnose(offer, ctx = {}) {
   const fallbackHeuristic = !matched;
 
   const diagnosisItems = buildDiagnosisItems(matchResult, offer, ctx.inventory, ctx.incoming);
-  const pricing = computePricing(offer, ctx.centerPriceDB);
+  const pricing = computePricing(offer, ctx.centerPriceDB, ctx.offerMcMap);
 
   return {
     skuId: offer.skuId,
