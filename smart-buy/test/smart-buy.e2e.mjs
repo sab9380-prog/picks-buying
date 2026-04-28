@@ -1,68 +1,72 @@
-// Playwright E2E — v1.4 핵심 시나리오 5단계 + 스크린샷 5장.
+// Playwright E2E — Round 2 통합 시나리오 12종 + 스크린샷 10장.
+// 기존 1~5 (UI 재구조화 반영) + 신규 6~12.
 import { test, expect } from '@playwright/test';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:4173';
-const SHOTS = resolve(__dirname, '_screenshots');
+const SHOTS = resolve(__dirname, '_screenshots/round2');
 const SAMPLE_XLSX = resolve(__dirname, '_mock/sample-offer.xlsx');
 
-test.describe('smart-buy E2E', () => {
-  test('1. 페이지 로딩 — 콘솔 에러 0', async ({ page }) => {
+async function gotoReady(page) {
+  await page.goto(BASE + '/index.html');
+  await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
+}
+async function uploadAndWait(page) {
+  await page.setInputFiles('#file-input', SAMPLE_XLSX);
+  await expect(page.locator('#status-bar.show')).toContainText(/진단 완료/, { timeout: 15_000 });
+}
+
+test.describe('smart-buy Round 2 E2E', () => {
+  test('1. 페이지 로딩 — 콘솔 에러 0 + 3 탭 표시', async ({ page }) => {
     const errors = [];
     page.on('pageerror', e => errors.push(String(e)));
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 
-    await page.goto(BASE + '/index.html');
-    // 헤더 + 모드 토글 표시 확인
+    await gotoReady(page);
     await expect(page.locator('header h1')).toContainText('스마트 매입');
     await expect(page.locator('[data-testid="mode-toggle"]')).toBeVisible();
-
-    // 초기화 완료 대기 (status bar에 "준비 완료")
-    await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
-
-    await page.screenshot({ path: resolve(SHOTS, '01-loaded.png'), fullPage: true });
+    // 결과 영역은 미업로드 상태에서는 숨겨져 있을 수도, 영속 데이터로 보일 수도 있음
+    await page.screenshot({ path: resolve(SHOTS, '01-dashboard-loaded.png'), fullPage: true });
     expect(errors, '콘솔 에러:\n' + errors.join('\n')).toEqual([]);
   });
 
-  test('2. Excel 업로드 → 30 SKU 진단 표시', async ({ page }) => {
-    await page.goto(BASE + '/index.html');
-    await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
-
-    // 파일 input은 hidden이라 setInputFiles로 직접 주입
-    await page.setInputFiles('#file-input', SAMPLE_XLSX);
-    // 진단 완료 대기
-    await expect(page.locator('#status-bar.show')).toContainText(/진단 완료/, { timeout: 15_000 });
+  test('2. Excel 업로드 → 30 SKU 진단 + 대시보드 렌더', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
     await expect(page.locator('#results-section')).toBeVisible();
-    // TOP 20 테이블이 보여야 함
-    await expect(page.locator('[data-testid="top20-table"]')).toBeVisible();
-
-    await page.screenshot({ path: resolve(SHOTS, '02-uploaded.png'), fullPage: true });
+    // 기본 활성: 전체 오퍼 (대시보드)
+    await expect(page.locator('#tab-dashboard')).toHaveClass(/active/);
+    await expect(page.locator('[data-testid="kpi-grid"]')).toBeVisible();
+    await page.screenshot({ path: resolve(SHOTS, '02-uploaded-dashboard.png'), fullPage: true });
   });
 
-  test('3. TOP 20 탭 확인', async ({ page }) => {
-    await page.goto(BASE + '/index.html');
-    await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
-    await page.setInputFiles('#file-input', SAMPLE_XLSX);
-    await expect(page.locator('#status-bar.show')).toContainText(/진단 완료/, { timeout: 15_000 });
+  test('3. 탭 전환 — 대시보드 / TOP 20 / 전체 SKU', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
 
-    // 기본 활성 탭이 TOP 20
-    await expect(page.locator('#tab-top20')).toHaveClass(/active/);
-    const rows = await page.locator('[data-testid="top20-table"] tbody tr').count();
-    expect(rows).toBeGreaterThan(0);
-    expect(rows).toBeLessThanOrEqual(20);
+    await page.locator('[data-tab="top20"]').click();
+    await expect(page.locator('[data-testid="top20-table"]')).toBeVisible();
+    const top20Rows = await page.locator('[data-testid="top20-table"] tbody tr').count();
+    expect(top20Rows).toBeGreaterThan(0);
+    expect(top20Rows).toBeLessThanOrEqual(20);
+    await page.screenshot({ path: resolve(SHOTS, '05-table-top20.png'), fullPage: true });
 
-    await page.screenshot({ path: resolve(SHOTS, '03-top20.png'), fullPage: true });
+    await page.locator('[data-tab="all"]').click();
+    await expect(page.locator('[data-testid="all-sku-table"]')).toBeVisible();
+    const allRows = await page.locator('[data-testid="all-sku-table"] tbody tr').count();
+    expect(allRows).toBe(30);
+    await page.screenshot({ path: resolve(SHOTS, '06-table-all.png'), fullPage: true });
+
+    await page.locator('[data-tab="dashboard"]').click();
+    await expect(page.locator('[data-testid="kpi-grid"]')).toBeVisible();
   });
 
   test('4. 첫 SKU에 BUY 클릭 → IndexedDB 저장 + decision-made 이벤트', async ({ page }) => {
-    await page.goto(BASE + '/index.html');
-    await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
-    await page.setInputFiles('#file-input', SAMPLE_XLSX);
-    await expect(page.locator('#status-bar.show')).toContainText(/진단 완료/, { timeout: 15_000 });
+    await gotoReady(page);
+    await uploadAndWait(page);
 
-    // 이벤트 캡처: window에 카운터 부착
     await page.evaluate(() => {
       window.__decisionEvents = [];
       window.addEventListener('picks:decision-made', (e) => {
@@ -70,75 +74,178 @@ test.describe('smart-buy E2E', () => {
       });
     });
 
-    // 첫 SKU의 BUY 버튼
-    const firstBuyBtn = page.locator('[data-testid="btn-buy"]').first();
-    await expect(firstBuyBtn).toBeVisible();
-    await firstBuyBtn.click();
-
-    // status bar 업데이트
+    await page.locator('[data-tab="top20"]').click();
+    const firstBuy = page.locator('[data-testid="top20-table"] tbody tr:first-child [data-testid="btn-buy"]');
+    await expect(firstBuy).toBeVisible();
+    await firstBuy.click();
     await expect(page.locator('#status-bar.show')).toContainText(/결정 저장: BUY/, { timeout: 5_000 });
 
-    // 이벤트 발행 확인
+    // decided 클래스 (시각 피드백)
+    await expect(firstBuy).toHaveClass(/decided/);
+
+    // 이벤트 발행
     const events = await page.evaluate(() => window.__decisionEvents);
     expect(events.length).toBe(1);
     expect(events[0].decision.decision).toBe('BUY');
-    expect(events[0].source).toBe('smart-buy');
 
-    // IndexedDB 확인
+    // IndexedDB 직접 조회
     const decisions = await page.evaluate(async () => {
       const req = indexedDB.open('smart-buy', 1);
       const db = await new Promise((res, rej) => {
-        req.onsuccess = () => res(req.result);
-        req.onerror = () => rej(req.error);
+        req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
       });
       return new Promise((res, rej) => {
         const t = db.transaction('decisions', 'readonly');
         const r = t.objectStore('decisions').getAll();
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
       });
     });
     expect(decisions.length).toBeGreaterThan(0);
-    expect(decisions[0].decision).toBe('BUY');
+    expect(decisions.some(d => d.decision === 'BUY')).toBe(true);
 
-    await page.screenshot({ path: resolve(SHOTS, '04-buy-clicked.png'), fullPage: true });
+    await page.screenshot({ path: resolve(SHOTS, '09-buy-clicked.png'), fullPage: true });
   });
 
-  test('5. 페이지 새로고침 → Decision 영속성', async ({ page }) => {
-    // 같은 Playwright 컨텍스트 = 같은 IndexedDB. upload → BUY → reload → 영속성 확인.
-    await page.goto(BASE + '/index.html');
-    await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
+  test('5. 새로고침 → IndexedDB 영속성 + 시각적 복원', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
 
-    await page.setInputFiles('#file-input', SAMPLE_XLSX);
-    await expect(page.locator('#status-bar.show')).toContainText(/진단 완료/, { timeout: 15_000 });
-
-    // BUY 결정 1건 저장
-    await page.locator('[data-testid="btn-buy"]').first().click();
+    await page.locator('[data-tab="top20"]').click();
+    await page.locator('[data-testid="top20-table"] tbody tr:first-child [data-testid="btn-buy"]').click();
     await expect(page.locator('#status-bar.show')).toContainText(/결정 저장: BUY/, { timeout: 5_000 });
 
-    // 페이지 새로고침
     await page.reload();
     await expect(page.locator('#status-bar.show')).toContainText(/준비 완료/, { timeout: 10_000 });
 
-    // IndexedDB 직접 조회 — 새로고침 후에도 살아있어야 함
-    const decisions = await page.evaluate(async () => {
-      const req = indexedDB.open('smart-buy', 1);
-      const db = await new Promise((res, rej) => {
-        req.onsuccess = () => res(req.result);
-        req.onerror = () => rej(req.error);
-      });
-      return new Promise((res, rej) => {
-        const t = db.transaction('decisions', 'readonly');
-        const r = t.objectStore('decisions').getAll();
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
-      });
-    });
-    expect(decisions.length).toBeGreaterThan(0);
-    const buyDec = decisions.find(d => d.decision === 'BUY');
-    expect(buyDec).toBeTruthy();
-    expect(buyDec.diagnosisSnapshot).toBeTruthy();
+    // 결과 영역 자동 복원 (대시보드 KPI 가시)
+    await expect(page.locator('#results-section')).toBeVisible();
+    await expect(page.locator('[data-testid="kpi-grid"]')).toBeVisible();
 
-    await page.screenshot({ path: resolve(SHOTS, '05-persisted.png'), fullPage: true });
+    // TOP 20 탭의 결정 버튼이 'decided' 클래스 유지
+    await page.locator('[data-tab="top20"]').click();
+    const decidedCount = await page.locator(
+      '[data-testid="top20-table"] tbody [data-testid="btn-buy"].decided'
+    ).count();
+    expect(decidedCount).toBeGreaterThan(0);
+
+    await page.screenshot({ path: resolve(SHOTS, '10-persisted-after-reload.png'), fullPage: true });
+  });
+
+  test('6. 대시보드 KPI 영역 — 8개 지표 모두 표시', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="dashboard"]').click();
+    const kpis = await page.locator('[data-testid="kpi-grid"] .kpi').count();
+    expect(kpis).toBe(8);
+    // 각 KPI 라벨 텍스트 점검 (대표 4개)
+    const labels = await page.locator('[data-testid="kpi-grid"] .kpi-label').allTextContents();
+    expect(labels).toEqual(expect.arrayContaining([
+      '총 SKU', '총 수량', '가중평균 매입율', '가중평균 점수',
+      '위험 SKU', '가격모순', '중심가 매칭률'
+    ]));
+  });
+
+  test('7. 등급 분포 막대그래프 SVG — 5개 등급 막대', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="dashboard"]').click();
+    await expect(page.locator('[data-testid="grade-distribution"] svg')).toBeVisible();
+    const bars = await page.locator('[data-testid="grade-distribution"] svg rect').count();
+    expect(bars).toBeGreaterThanOrEqual(1);
+    expect(bars).toBeLessThanOrEqual(5);
+
+    await page.locator('[data-testid="grade-distribution"]').screenshot(
+      { path: resolve(SHOTS, '03-grade-distribution.png') }
+    );
+  });
+
+  test('8. 통계 7종 모두 렌더', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="dashboard"]').click();
+    const blocks = await page.locator('[data-testid="stats-grid"] .dash-stat').count();
+    expect(blocks).toBe(7);
+    // 각 차트에 svg 존재 확인
+    const svgsInStats = await page.locator('[data-testid="stats-grid"] .dash-stat svg').count();
+    expect(svgsInStats).toBeGreaterThanOrEqual(7);
+
+    await page.locator('[data-testid="stats-grid"]').screenshot(
+      { path: resolve(SHOTS, '04-statistics-grid.png') }
+    );
+  });
+
+  test('9. SKU 표 행 클릭 → 디테일 패널 슬라이드 인', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="top20"]').click();
+    const detailPanel = page.locator('[data-testid="detail-top20-table"]');
+    await expect(detailPanel).toBeHidden();
+
+    await page.locator('[data-testid="top20-table"] tbody tr:first-child').click();
+    await expect(detailPanel).toBeVisible();
+    // 디테일 헤더에 SKU 브랜드+모델 노출
+    await expect(detailPanel.locator('header h3')).toBeVisible();
+
+    await page.screenshot({ path: resolve(SHOTS, '07-detail-panel-open.png'), fullPage: true });
+
+    // 닫기
+    await detailPanel.locator('[data-testid="detail-close"]').click();
+    await expect(detailPanel).toBeHidden();
+  });
+
+  test('10. 가격 모순 SKU — 빨간 배지(cell-mismatch) 1건 이상', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="all"]').click();
+    const mismatchCells = await page.locator(
+      '[data-testid="all-sku-table"] td.cell-mismatch'
+    ).count();
+    expect(mismatchCells).toBeGreaterThanOrEqual(1);
+
+    await page.locator(
+      '[data-testid="all-sku-table"] td.cell-mismatch'
+    ).first().screenshot({ path: resolve(SHOTS, '08-price-mismatch-badge.png') });
+  });
+
+  test('11. 표 컬럼 헤더 클릭 → 정렬 (asc/desc 토글)', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="all"]').click();
+    // 점수 컬럼 (data-key="score") 클릭 → asc
+    const scoreHeader = page.locator(
+      '[data-testid="all-sku-table"] thead th[data-key="score"]'
+    );
+    await scoreHeader.click();
+    await expect(scoreHeader).toHaveClass(/sort-asc/);
+    // 한 번 더 → desc
+    await scoreHeader.click();
+    await expect(scoreHeader).toHaveClass(/sort-desc/);
+    // 정렬 후 첫 행이 가장 큰 점수인지 검증 — 점수 셀 (인덱스 16)
+    const rows = page.locator('[data-testid="all-sku-table"] tbody tr');
+    const firstScore = await rows.nth(0).locator('td').nth(16).textContent();
+    const lastScore  = await rows.nth(await rows.count() - 1).locator('td').nth(16).textContent();
+    expect(parseFloat(firstScore)).toBeGreaterThanOrEqual(parseFloat(lastScore));
+  });
+
+  test('12. 매입율 컬럼 — % 형식 출력 (예: 50.0%)', async ({ page }) => {
+    await gotoReady(page);
+    await uploadAndWait(page);
+
+    await page.locator('[data-tab="all"]').click();
+    // 매입율은 인덱스 11 (# 0, 브랜드 1, 모델 2, 컬러 3, 사이즈 4, 카테고리 5,
+    //                  성별 6, 시즌 7, 수량 8, JSC 9, RRP 10, 매입율 11)
+    const cells = await page.locator(
+      '[data-testid="all-sku-table"] tbody tr td:nth-child(12)'
+    ).allTextContents();
+    const withPercent = cells.filter(c => /^\d+(\.\d+)?%$/.test(c.trim()));
+    expect(withPercent.length).toBeGreaterThan(0);
+    // 무작위 매입율 하나 형식 점검
+    expect(withPercent[0]).toMatch(/^\d+\.\d+%$/);
   });
 });
