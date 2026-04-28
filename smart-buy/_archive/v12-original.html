@@ -1,0 +1,2570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NC PICKS | OPR 상품 오퍼 판별기</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --ink: #1a1a2e;
+  --ink2: #2d2d44;
+  --coral: #e8604c;
+  --coral2: #ff8a75;
+  --bg: #f4f4f0;
+  --card: #ffffff;
+  --border: #e0e0da;
+  --text: #1a1a2e;
+  --text2: #5a5a72;
+  --green1: #1a7a4a;
+  --green2: #2ea860;
+  --green3: #6fcf97;
+  --yellow: #f2c94c;
+  --orange: #f2994a;
+  --red: #eb5757;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Pretendard', -apple-system, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── START SCREEN ── */
+#startScreen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 40px 20px;
+}
+.start-logo { font-size: 13px; font-weight: 600; letter-spacing: 0.15em; color: var(--coral); margin-bottom: 8px; }
+.start-title { font-size: 28px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.start-sub { font-size: 14px; color: var(--text2); margin-bottom: 48px; }
+.start-cards { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 1060px; }
+.start-card {
+  background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+  padding: 32px 28px; cursor: pointer; transition: all 0.2s; width: 300px; text-align: left;
+}
+.start-card:hover { border-color: var(--coral); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(232,96,76,0.15); }
+.start-card-icon { font-size: 32px; margin-bottom: 16px; }
+.start-card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.start-card-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ── PREVIEW PANEL ── */
+#previewPanel {
+  display: none; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; margin-top: 24px; padding: 20px 24px; width: 100%; max-width: 700px;
+}
+.preview-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 12px; letter-spacing: 0.05em; }
+.preview-cols { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.preview-col { background: var(--bg); border-radius: 6px; padding: 4px 10px; font-size: 12px; font-family: var(--mono); color: var(--ink2); }
+.preview-col.matched { background: #e8f5ee; color: var(--green1); }
+.preview-col.missing { background: #fef0ee; color: var(--red); }
+#runBtn {
+  background: var(--coral); color: #fff; border: none; border-radius: 10px;
+  padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: var(--sans); transition: background 0.2s;
+}
+#runBtn:hover { background: #d4503d; }
+
+/* ── DASHBOARD ── */
+#dashboard { display: none; padding: 0; }
+
+.dash-header {
+  background: var(--ink); color: #fff; padding: 16px 28px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.dash-header-left { display: flex; align-items: center; gap: 20px; }
+.dash-logo { font-size: 11px; font-weight: 600; letter-spacing: 0.2em; color: var(--coral); }
+.dash-file { font-size: 14px; font-weight: 600; }
+.dash-meta { font-size: 12px; color: rgba(255,255,255,0.55); font-family: var(--mono); }
+.dash-header-right { display: flex; gap: 10px; align-items: center; }
+.btn-header {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: var(--sans); transition: background 0.2s; white-space: nowrap;
+}
+.btn-header:hover { background: rgba(255,255,255,0.2); }
+.btn-export {
+  background: var(--coral); border: none; color: #fff; border-radius: 8px;
+  padding: 8px 18px; font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: var(--sans); transition: background 0.2s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-export:hover { background: #d4503d; }
+.btn-export-all {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: var(--sans); transition: background 0.2s; white-space: nowrap;
+}
+.btn-export-all:hover { background: rgba(255,255,255,0.25); }
+
+/* filter bar */
+.filter-bar {
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 12px 28px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+}
+.filter-group { display: flex; gap: 6px; align-items: center; }
+.filter-label { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.08em; margin-right: 4px; }
+.filter-btn {
+  border: 1px solid var(--border); background: #fff; border-radius: 20px;
+  padding: 5px 14px; font-size: 12px; cursor: pointer; font-family: var(--sans);
+  color: var(--text2); transition: all 0.15s;
+}
+.filter-btn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.filter-sep { width: 1px; height: 20px; background: var(--border); }
+
+/* main content */
+.dash-body { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+
+/* kpi row */
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--card); border-radius: 12px; padding: 20px 22px;
+  border: 1px solid var(--border); position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+}
+.kpi-card.kpi-prime::before { background: var(--green1); }
+.kpi-card.kpi-qty::before { background: var(--ink); }
+.kpi-card.kpi-rrp::before { background: var(--coral); }
+.kpi-card.kpi-avg::before { background: var(--yellow); }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.08em; margin-bottom: 8px; }
+.kpi-value { font-size: 28px; font-weight: 700; color: var(--ink); font-family: var(--mono); }
+.kpi-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+/* grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-12 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; }
+.grid-21 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+/* section card */
+.section-card {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 22px 24px; overflow: hidden;
+}
+.section-card.full { margin-bottom: 16px; }
+.section-title {
+  font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+}
+.section-title span { color: var(--ink); }
+
+/* grade bar */
+.grade-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.grade-label { font-size: 12px; font-weight: 600; width: 60px; flex-shrink: 0; }
+.grade-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.grade-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.grade-count { font-size: 12px; font-family: var(--mono); color: var(--text2); width: 60px; text-align: right; }
+.g80 { color: var(--green1); } .g80 .grade-bar-fill { background: var(--green1); }
+.g70 { color: var(--green2); } .g70 .grade-bar-fill { background: var(--green2); }
+.g60 { color: var(--yellow); } .g60 .grade-bar-fill { background: var(--yellow); }
+.g50 { color: var(--orange); } .g50 .grade-bar-fill { background: var(--orange); }
+.g0  { color: var(--red); }   .g0 .grade-bar-fill  { background: var(--red); }
+
+/* chart wrapper */
+.chart-wrap { position: relative; width: 100%; }
+.chart-wrap canvas { max-width: 100%; }
+
+/* size tabs */
+.size-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.size-tab {
+  border: 1px solid var(--border); background: #fff; border-radius: 20px;
+  padding: 5px 14px; font-size: 12px; cursor: pointer; font-family: var(--sans);
+  color: var(--text2); transition: all 0.15s;
+}
+.size-tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.size-section-title { font-size: 11px; font-weight: 600; color: var(--text2); margin: 12px 0 6px; letter-spacing: 0.06em; }
+
+/* top sku table */
+.sku-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sku-table th {
+  text-align: left; padding: 8px 12px; background: var(--bg);
+  font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em;
+  border-bottom: 2px solid var(--border);
+}
+.sku-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+.sku-table tr:hover td { background: #fafafa; }
+.score-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 22px; border-radius: 6px; font-size: 12px; font-weight: 700;
+  font-family: var(--mono);
+}
+.score-badge.s80 { background: #e8f5ee; color: var(--green1); }
+.score-badge.s70 { background: #edfaf3; color: var(--green2); }
+.score-badge.s60 { background: #fef9e7; color: #b7860a; }
+.score-badge.s50 { background: #fef3e7; color: var(--orange); }
+.score-badge.s0  { background: #fef0ee; color: var(--red); }
+.grade-tag {
+  display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600;
+}
+.grade-tag.t80 { background: #e8f5ee; color: var(--green1); }
+.grade-tag.t70 { background: #edfaf3; color: var(--green2); }
+.grade-tag.t60 { background: #fef9e7; color: #b7860a; }
+.grade-tag.t50 { background: #fef3e7; color: var(--orange); }
+.grade-tag.t0  { background: #fef0ee; color: var(--red); }
+
+/* insight cards */
+.insight-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+.insight-card {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 18px 20px;
+}
+.insight-icon { font-size: 22px; margin-bottom: 10px; }
+.insight-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--text2); margin-bottom: 8px; }
+.insight-body { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+/* export modal */
+#exportModal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 1000; align-items: center; justify-content: center;
+}
+#exportModal.open { display: flex; }
+.modal-box {
+  background: #fff; border-radius: 16px; padding: 32px 36px; max-width: 480px; width: 90%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.modal-option {
+  border: 2px solid var(--border); border-radius: 12px; padding: 16px 18px;
+  margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
+}
+.modal-option:hover, .modal-option.selected { border-color: var(--coral); background: #fff8f7; }
+.modal-option-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.modal-option-desc { font-size: 12px; color: var(--text2); }
+.modal-col-select { margin: 16px 0; }
+.modal-col-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 10px; letter-spacing: 0.06em; }
+.col-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; }
+.col-check-label {
+  display: flex; align-items: center; gap: 6px; font-size: 12px;
+  background: var(--bg); border-radius: 6px; padding: 5px 10px; cursor: pointer;
+}
+.col-check-label input { cursor: pointer; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.btn-cancel {
+  border: 1px solid var(--border); background: #fff; border-radius: 8px;
+  padding: 10px 20px; font-size: 13px; cursor: pointer; font-family: var(--sans);
+}
+.btn-confirm {
+  background: var(--coral); color: #fff; border: none; border-radius: 8px;
+  padding: 10px 24px; font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: var(--sans);
+}
+.btn-confirm:hover { background: #d4503d; }
+
+/* toast */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: #fff; border-radius: 10px; padding: 12px 24px;
+  font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 2000;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* hidden file input */
+#fileInput { display: none; }
+
+/* responsive */
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2,1fr); }
+  .grid-2, .grid-3, .grid-12, .grid-21 { grid-template-columns: 1fr; }
+  .insight-grid { grid-template-columns: repeat(2,1fr); }
+  .dash-body { padding: 16px; }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .insight-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── SCORING CRITERIA SECTION ── */
+.criteria-section {
+  margin-top: 52px; width: 100%; max-width: 1060px;
+}
+.criteria-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px; justify-content: center;
+}
+.criteria-header-line {
+  flex: 1; height: 1px; background: var(--border); max-width: 160px;
+}
+.criteria-header-text {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.15em; color: var(--text2);
+  text-transform: uppercase; white-space: nowrap;
+}
+.criteria-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+}
+.criteria-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px 18px; position: relative; overflow: hidden; transition: transform 0.2s;
+}
+.criteria-card:hover { transform: translateY(-2px); }
+.criteria-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+}
+.criteria-card.c1::after { background: var(--coral); }
+.criteria-card.c2::after { background: #7c6bd6; }
+.criteria-card.c3::after { background: var(--green2); }
+.criteria-card.c4::after { background: #f2c94c; }
+.criteria-card.c5::after { background: #56c0e0; }
+.criteria-score-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px; padding: 3px 10px; font-size: 12px; font-weight: 700;
+  font-family: var(--mono); margin-bottom: 12px;
+}
+.c1 .criteria-score-badge { background: #fef0ee; color: var(--coral); }
+.c2 .criteria-score-badge { background: #f0eeff; color: #7c6bd6; }
+.c3 .criteria-score-badge { background: #edfaf3; color: var(--green2); }
+.c4 .criteria-score-badge { background: #fef9e7; color: #b7860a; }
+.c5 .criteria-score-badge { background: #e8f7fc; color: #2098b8; }
+.criteria-title {
+  font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 6px;
+}
+.criteria-sub {
+  font-size: 11px; color: var(--text2); line-height: 1.55; margin-bottom: 14px;
+}
+.criteria-rows { display: flex; flex-direction: column; gap: 5px; }
+.criteria-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--bg);
+}
+.criteria-row-label { color: var(--text2); }
+.criteria-row-val { font-family: var(--mono); font-weight: 600; color: var(--ink); }
+.criteria-row-val.best { color: var(--green1); }
+.criteria-row-val.mid  { color: #b7860a; }
+.criteria-row-val.low  { color: var(--red); }
+
+.grade-legend {
+  margin-top: 24px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 24px;
+  display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+}
+.grade-legend-title {
+  font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: 0.1em;
+  margin-right: 20px; white-space: nowrap;
+}
+.grade-legend-items { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+.grade-legend-item {
+  display: flex; align-items: center; gap: 7px;
+  border-radius: 8px; padding: 6px 14px; font-size: 12px;
+}
+.grade-legend-item .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.grade-legend-item .range { font-family: var(--mono); font-weight: 700; font-size: 13px; }
+.grade-legend-item .label { color: var(--text2); font-size: 11px; }
+.gli-80 { background: #e8f5ee; } .gli-80 .dot { background: var(--green1); } .gli-80 .range { color: var(--green1); }
+.gli-70 { background: #edfaf3; } .gli-70 .dot { background: var(--green2); } .gli-70 .range { color: var(--green2); }
+.gli-60 { background: #fef9e7; } .gli-60 .dot { background: #e6b800; }       .gli-60 .range { color: #b7860a; }
+.gli-50 { background: #fef3e7; } .gli-50 .dot { background: var(--orange); } .gli-50 .range { color: var(--orange); }
+.gli-0  { background: #fef0ee; } .gli-0  .dot { background: var(--red); }    .gli-0  .range { color: var(--red); }
+
+@media (max-width: 1000px) {
+  .criteria-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 700px) {
+  .criteria-grid { grid-template-columns: repeat(2, 1fr); }
+  .criteria-section { margin-top: 36px; }
+}
+
+</style>
+</head>
+<body>
+
+<input type="file" id="fileInput" accept=".xlsx,.xls">
+
+<!-- START SCREEN -->
+<div id="startScreen">
+  <div class="start-logo">NC PICKS · OPR</div>
+  <div class="start-title">OPR 상품 오퍼 판별기</div>
+  <div class="start-sub">Stock Offer Excel을 업로드하면 NC PICKS 매입 기준으로 자동 채점합니다</div>
+  <div class="start-cards">
+    <div class="start-card" onclick="loadSample()">
+      <div class="start-card-icon">⚡</div>
+      <div class="start-card-title">Adidas 샘플 오퍼 분석</div>
+      <div class="start-card-desc">내장된 Adidas 오퍼 데이터(7,458 SKU / 208,846 pcs)로 바로 대시보드를 확인합니다.</div>
+    </div>
+    <div class="start-card" onclick="document.getElementById('fileInput').click()">
+      <div class="start-card-icon">📂</div>
+      <div class="start-card-title">새 파일 업로드</div>
+      <div class="start-card-desc">Excel(.xlsx) 오퍼 파일을 업로드하여 NC PICKS 100점 기준으로 채점합니다.</div>
+    </div>
+    <div class="start-card" onclick="openMainPriceModal()">
+      <div class="start-card-icon">🧠</div>
+      <div class="start-card-title">고객 심리가 분석</div>
+      <div class="start-card-desc">시즌별 중심가격 · Peak Week · 브랜드별 Top N 대표 아이템 분석 대시보드를 엽니다.</div>
+    </div>
+  </div>
+
+  <!-- SCORING CRITERIA -->
+  <div class="criteria-section">
+    <div class="criteria-header">
+      <div class="criteria-header-line"></div>
+      <div class="criteria-header-text">NC PICKS 오퍼 평가 기준 — 100점 만점</div>
+      <div class="criteria-header-line"></div>
+    </div>
+
+    <div class="criteria-grid">
+
+      <!-- 브랜드 인지도 -->
+      <div class="criteria-card c1">
+        <div class="criteria-score-badge">30점</div>
+        <div class="criteria-title">① 브랜드 · 상품 인지도</div>
+        <div class="criteria-sub">133개 브랜드 시장 기준 DB. S~D 5단계 Tier로 자동 판별. 키즈 상품은 매입 제외(0점).</div>
+        <div class="criteria-rows">
+          <div class="criteria-row"><span class="criteria-row-label">S Tier (버버리·톰브라운·아미 등)</span><span class="criteria-row-val best">28–30점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">A Tier (산드로·챔피온·헤지스 등)</span><span class="criteria-row-val best">18–24점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">B Tier (알레그리·앳코너 등)</span><span class="criteria-row-val mid">12–18점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">C Tier (국내 중소·이노베이션)</span><span class="criteria-row-val low">8–12점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">D Tier (자체 기획 제외)</span><span class="criteria-row-val low">4점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">키즈 전 항목</span><span class="criteria-row-val low">0점 (매입 제외)</span></div>
+        </div>
+      </div>
+
+      <!-- 컬러 적합도 -->
+      <div class="criteria-card c2">
+        <div class="criteria-score-badge">20점</div>
+        <div class="criteria-title">② 컬러 적합도</div>
+        <div class="criteria-sub">무신사 2025 결산·에어포스1화이트 1위·모카무스 트렌드 근거. 블랙·화이트 단색 최상, 네온 최하.</div>
+        <div class="criteria-rows">
+          <div class="criteria-row"><span class="criteria-row-label">블랙 단색 / 화이트 단색</span><span class="criteria-row-val best">20점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">화이트+블랙 조합</span><span class="criteria-row-val best">18점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">베이지·크림·모카·카멜</span><span class="criteria-row-val best">16점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">그레이·차콜·멜란지</span><span class="criteria-row-val mid">14점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">그린·올리브·브라운</span><span class="criteria-row-val mid">13점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">네이비 / 버건디·레드</span><span class="criteria-row-val mid">11–12점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">블루·인디고·틸</span><span class="criteria-row-val mid">10점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">파스텔·핑크·옐로우</span><span class="criteria-row-val low">8점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">멀티·AOP·프린트·카모</span><span class="criteria-row-val low">4점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">네온·형광</span><span class="criteria-row-val low">2점</span></div>
+        </div>
+      </div>
+
+      <!-- 사이즈 적합도 -->
+      <div class="criteria-card c3">
+        <div class="criteria-score-badge">20점</div>
+        <div class="criteria-title">③ 사이즈 적합도</div>
+        <div class="criteria-sub">NC PICKS 매장 운영 효율 기준. 풋웨어 사이즈 전시 효과 최고.</div>
+        <div class="criteria-rows">
+          <div class="criteria-row"><span class="criteria-row-label">FOOTWEAR</span><span class="criteria-row-val best">20점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">ACCESSORY</span><span class="criteria-row-val mid">12점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">APPAREL</span><span class="criteria-row-val mid">9점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">KIDS 전 카테고리</span><span class="criteria-row-val low">0점 (매입 제외)</span></div>
+        </div>
+      </div>
+
+      <!-- 가격 경쟁력 -->
+      <div class="criteria-card c4">
+        <div class="criteria-score-badge">20점</div>
+        <div class="criteria-title">④ 가격 경쟁력</div>
+        <div class="criteria-sub">Landed Cost 기준 목표 판매가의 RRP 대비 할인율. 35% GM 목표, 60% 이상 할인 필수.</div>
+        <div class="criteria-rows">
+          <div class="criteria-row"><span class="criteria-row-label">RRP 대비 60%+ 할인</span><span class="criteria-row-val best">20점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">50% 이상</span><span class="criteria-row-val best">17점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">40% 이상</span><span class="criteria-row-val mid">13점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">30% 이상</span><span class="criteria-row-val mid">9점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">20% 이상</span><span class="criteria-row-val low">5점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">20% 미만</span><span class="criteria-row-val low">3점</span></div>
+        </div>
+      </div>
+
+      <!-- 시즌 신선도 -->
+      <div class="criteria-card c5">
+        <div class="criteria-score-badge">10점</div>
+        <div class="criteria-title">⑤ 시즌 신선도</div>
+        <div class="criteria-sub">상품 출시 시즌 기준. 당시즌·차시즌 우선, S23 이전은 매입가 추가 네고 필수.</div>
+        <div class="criteria-rows">
+          <div class="criteria-row"><span class="criteria-row-label">S26 / F26 (차시즌)</span><span class="criteria-row-val best">10점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">S25 / F25 (당시즌)</span><span class="criteria-row-val best">8점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">S24 / F24</span><span class="criteria-row-val mid">5점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">S23 / F23</span><span class="criteria-row-val low">2점</span></div>
+          <div class="criteria-row"><span class="criteria-row-label">S22 이전</span><span class="criteria-row-val low">1점</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Grade legend -->
+    <div class="grade-legend">
+      <span class="grade-legend-title">등급 기준</span>
+      <div class="grade-legend-items">
+        <div class="grade-legend-item gli-80">
+          <div class="dot"></div><span class="range">80+</span><span class="label">최우선 매입</span>
+        </div>
+        <div class="grade-legend-item gli-70">
+          <div class="dot"></div><span class="range">70–79</span><span class="label">적극 권장</span>
+        </div>
+        <div class="grade-legend-item gli-60">
+          <div class="dot"></div><span class="range">60–69</span><span class="label">조건부 매입</span>
+        </div>
+        <div class="grade-legend-item gli-50">
+          <div class="dot"></div><span class="range">50–59</span><span class="label">신중 검토</span>
+        </div>
+        <div class="grade-legend-item gli-0">
+          <div class="dot"></div><span class="range">~49</span><span class="label">패스</span>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--text2);align-self:center;padding-left:12px;">
+          산출식: Landed = JSC × 1,740 × 2.0 &nbsp;/&nbsp; Target = Landed ÷ 0.65 &nbsp;/&nbsp; Disc = 1 − (Target ÷ (RRP × 1,700))
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CENTER PRICE DB STATUS -->
+  <div id="centerPriceStatus" style="margin-top:16px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <span>📊 중심가 DB:</span>
+    <span id="cpDbLabel" style="color:var(--green1);font-weight:600">내장 데이터 로드됨 (134개 브랜드)</span>
+    <label style="cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--text2);">
+      🔄 최신 파일로 교체
+      <input type="file" id="centerPriceInput" accept=".xlsx,.xls" style="display:none" onchange="loadCenterPriceFile(this)">
+    </label>
+  </div>
+
+  <div id="previewPanel">
+    <div class="preview-title">컬럼 인식 결과</div>
+    <div id="previewCols" class="preview-cols"></div>
+    <div id="previewMsg" style="font-size:12px;color:var(--text2);margin-bottom:14px;"></div>
+    <button id="runBtn" onclick="runAnalysis()">📊 분석 실행</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <div>
+        <div class="dash-logo">NC PICKS · OPR</div>
+        <div class="dash-file" id="hdrFile">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="dash-meta" id="hdrMeta">—</div>
+        <div id="hdrTierBadge" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.08em;"></div>
+      </div>
+    </div>
+    <div class="dash-header-right">
+      <button class="btn-export-all" onclick="openExportModal('all')" title="전체 데이터 Excel 출력">
+        📥 전체 Excel
+      </button>
+      <button class="btn-export" onclick="openExportModal('filtered')" title="현재 필터 적용 데이터 출력">
+        📥 필터 Excel
+      </button>
+      <button class="btn-header" onclick="document.getElementById('fileInput').click()">🔄 파일 교체</button>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">카테고리</span>
+      <div id="catFilters"></div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <span class="filter-label">성별</span>
+      <div id="genFilters"></div>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- KPI -->
+    <div class="kpi-row">
+      <div class="kpi-card kpi-prime">
+        <div class="kpi-label">최우선 매입 (80점+)</div>
+        <div class="kpi-value" id="kpiPrime">—</div>
+        <div class="kpi-sub" id="kpiPrimeSub">—</div>
+      </div>
+      <div class="kpi-card kpi-qty">
+        <div class="kpi-label">총 수량</div>
+        <div class="kpi-value" id="kpiQty">—</div>
+        <div class="kpi-sub" id="kpiQtySub">—</div>
+      </div>
+      <div class="kpi-card kpi-rrp">
+        <div class="kpi-label">총 RRP (EUR)</div>
+        <div class="kpi-value" id="kpiRrp">—</div>
+        <div class="kpi-sub" id="kpiRrpSub">—</div>
+      </div>
+      <div class="kpi-card kpi-avg">
+        <div class="kpi-label">평균 점수</div>
+        <div class="kpi-value" id="kpiAvg">—</div>
+        <div class="kpi-sub" id="kpiAvgSub">—</div>
+      </div>
+    </div>
+
+    <!-- Grade + Donut -->
+    <div class="grid-12">
+      <div class="section-card">
+        <div class="section-title">매입 평가 <span>등급 분포</span></div>
+        <div id="gradeBars"></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">수량 기준 <span>등급 비율</span></div>
+        <div class="chart-wrap" style="height:180px">
+          <canvas id="gradeDonut"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Composition -->
+    <div class="grid-3">
+      <div class="section-card">
+        <div class="section-title">카테고리 <span>구성</span></div>
+        <div class="chart-wrap" style="height:180px"><canvas id="catDonut"></canvas></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">성별 <span>구성</span></div>
+        <div class="chart-wrap" style="height:180px"><canvas id="genDonut"></canvas></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">시즌 <span>구성</span></div>
+        <div class="chart-wrap" style="height:180px"><canvas id="seasonDonut"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Color -->
+    <div class="grid-2">
+      <div class="section-card">
+        <div class="section-title">컬러 그룹 <span>도넛</span></div>
+        <div class="chart-wrap" style="height:200px"><canvas id="colorDonut"></canvas></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">상위 8 <span>컬러</span></div>
+        <div class="chart-wrap" style="height:200px"><canvas id="colorBar"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Size Analysis -->
+    <div class="section-card full">
+      <div class="section-title">사이즈 분석</div>
+      <div id="sizeAnalysis"></div>
+    </div>
+
+    <!-- Price Distribution -->
+    <div class="grid-2">
+      <div class="section-card">
+        <div class="section-title">RRP 가격대 <span>분포</span></div>
+        <div class="chart-wrap" style="height:200px"><canvas id="priceBar"></canvas></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">시즌별 <span>수량</span></div>
+        <div class="chart-wrap" style="height:200px"><canvas id="seasonBar"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Top SKU Table -->
+    <div class="section-card full">
+      <div class="section-title" style="justify-content:space-between">
+        <span>상위 매입 SKU <span>TOP 20</span></span>
+        <button class="btn-export" onclick="openExportModal('top20')" style="font-size:11px;padding:5px 12px;">
+          📥 TOP 20 Excel
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="sku-table">
+          <thead>
+            <tr>
+              <th>#</th><th>아티클</th><th>모델명</th><th>성별</th><th>카테고리</th>
+              <th>시즌</th><th>컬러</th><th>RRP(EUR)</th><th>OFFER PRICE(EUR)</th><th>수량</th>
+              <th>브랜드Tier</th><th>컬러</th><th>사이즈</th><th>가격</th><th>시즌점수</th>
+              <th>총점</th><th>등급</th><th>고객심리가(₩)</th><th>목표판매가(₩)</th><th>심리가대비</th>
+            </tr>
+          </thead>
+          <tbody id="skuTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="insight-icon">✅</div>
+        <div class="insight-title">적극 매입</div>
+        <div class="insight-body" id="ins1">—</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🔍</div>
+        <div class="insight-title">선별 검토</div>
+        <div class="insight-body" id="ins2">—</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🚫</div>
+        <div class="insight-title">패스 권고</div>
+        <div class="insight-body" id="ins3">—</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">💬</div>
+        <div class="insight-title">네고 포인트</div>
+        <div class="insight-body" id="ins4">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div id="exportModal">
+  <div class="modal-box">
+    <div class="modal-title">📥 Excel 내보내기</div>
+    <div class="modal-sub" id="modalSubText">내보낼 데이터 범위와 포함할 컬럼을 선택하세요.</div>
+
+    <div style="margin-bottom:14px;">
+      <div class="modal-option selected" id="opt1" onclick="selectOpt(1)">
+        <div class="modal-option-title">🎯 필터 적용 데이터</div>
+        <div class="modal-option-desc">현재 카테고리·성별 필터가 적용된 SKU만 출력</div>
+      </div>
+      <div class="modal-option" id="opt2" onclick="selectOpt(2)">
+        <div class="modal-option-title">📦 전체 데이터</div>
+        <div class="modal-option-desc">필터 무관하게 전체 SKU 출력</div>
+      </div>
+      <div class="modal-option" id="opt3" onclick="selectOpt(3)">
+        <div class="modal-option-title">⭐ TOP 20 매입 추천</div>
+        <div class="modal-option-desc">NC PICKS 점수 상위 20개 SKU만 출력</div>
+      </div>
+    </div>
+
+    <div class="modal-col-select">
+      <div class="modal-col-title">포함할 컬럼 선택</div>
+      <div class="col-checkboxes" id="colCheckboxes"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeExportModal()">취소</button>
+      <button class="btn-confirm" onclick="doExport()">Excel 다운로드</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// GLOBAL STATE
+// ═══════════════════════════════════════════════════════
+const STATE = {
+  data: [],
+  cats: [],
+  gens: [],
+  activeCats: new Set(),
+  activeGens: new Set(),
+  brand: '',
+  filename: '',
+  exportMode: 'filtered'
+};
+
+const CHARTS = {};
+
+// ═══════════════════════════════════════════════════════
+// BRAND SIZE DB
+// ═══════════════════════════════════════════════════════
+function euRange(min, max) {
+  const r = [];
+  for (let v = min * 2; v <= max * 2; v++) r.push(v / 2);
+  return r;
+}
+
+const BRAND_SIZE_DB = {
+  ADIDAS: {
+    shoesNote: '아디다스는 일반적으로 평소 사이즈 착용 권장. 삼바/가젤 등 오리지널은 한 사이즈 업 추천 (크림·무신사 실착 데이터 기준)',
+    fit: 'normal',
+    womenMain: euRange(36, 39), womenEdge: [35.5, 39.5, 40],
+    menMain: euRange(40, 44), menEdge: [39, 39.5, 44.5, 45],
+    apparel: {
+      note: '아디다스 공식 사이즈 가이드 기준',
+      men: [
+        {size:'XS',chest:'82–86',waist:'70–74',kr:'85~90'},
+        {size:'S',chest:'86–91',waist:'74–79',kr:'90~95'},
+        {size:'M',chest:'91–97',waist:'79–84',kr:'95~100'},
+        {size:'L',chest:'97–104',waist:'84–91',kr:'100~105'},
+        {size:'XL',chest:'104–112',waist:'91–99',kr:'105~110'},
+        {size:'2XL',chest:'112–121',waist:'99–108',kr:'110~115'},
+      ],
+      women: [
+        {size:'XS',chest:'79–84',waist:'63–68',kr:'55호'},
+        {size:'S',chest:'84–89',waist:'68–73',kr:'55~66호'},
+        {size:'M',chest:'89–94',waist:'73–78',kr:'66호'},
+        {size:'L',chest:'94–100',waist:'78–84',kr:'66~77호'},
+        {size:'XL',chest:'100–107',waist:'84–91',kr:'77호'},
+      ],
+      menMainSizes: ['M','L','XL'], menEdgeSizes: ['S','2XL'],
+      womenMainSizes: ['S','M','L'], womenEdgeSizes: ['XS','XL'],
+      riskSizes: ['2XS','3XL']
+    }
+  },
+  NIKE: {
+    shoesNote: '나이키는 발볼이 좁은 편. D등급 이상 발볼에는 0.5 업 추천. 에어맥스 계열은 TTS.',
+    fit: 'normal',
+    womenMain: euRange(36, 39), womenEdge: [35.5, 39.5, 40],
+    menMain: euRange(40, 44), menEdge: [39, 39.5, 44.5, 45],
+    apparel: {
+      note: '나이키 공식 사이즈 가이드 기준',
+      men: [
+        {size:'S',chest:'87–92',waist:'72–77',kr:'90~95'},
+        {size:'M',chest:'92–97',waist:'77–82',kr:'95~100'},
+        {size:'L',chest:'97–105',waist:'82–89',kr:'100~105'},
+        {size:'XL',chest:'105–113',waist:'89–97',kr:'105~110'},
+        {size:'2XL',chest:'113–121',waist:'97–105',kr:'110~115'},
+      ],
+      women: [
+        {size:'XS',chest:'78–82',waist:'62–66',kr:'55호'},
+        {size:'S',chest:'82–87',waist:'66–71',kr:'55~66호'},
+        {size:'M',chest:'87–92',waist:'71–76',kr:'66호'},
+        {size:'L',chest:'92–98',waist:'76–82',kr:'66~77호'},
+        {size:'XL',chest:'98–105',waist:'82–89',kr:'77호'},
+      ],
+      menMainSizes: ['M','L','XL'], menEdgeSizes: ['S','2XL'],
+      womenMainSizes: ['S','M','L'], womenEdgeSizes: ['XS','XL'],
+      riskSizes: ['2XS','3XL']
+    }
+  },
+  LACOSTE: {
+    shoesNote: '라코스테 슈즈는 유럽 브랜드 특성상 TTS. 어패럴은 유럽 핏으로 타이트할 수 있어 한 사이즈 업 고려.',
+    fit: 'normal',
+    womenMain: euRange(36, 39), womenEdge: [35.5, 39.5, 40],
+    menMain: euRange(40, 44), menEdge: [39, 39.5, 44.5, 45],
+    apparel: {
+      note: '라코스테 공식 사이즈 가이드 기준',
+      men: [
+        {size:'S',chest:'88–92',waist:'74–78',kr:'90~95'},
+        {size:'M',chest:'92–98',waist:'78–84',kr:'95~100'},
+        {size:'L',chest:'98–104',waist:'84–90',kr:'100~105'},
+        {size:'XL',chest:'104–112',waist:'90–98',kr:'105~110'},
+        {size:'2XL',chest:'112–120',waist:'98–106',kr:'110~115'},
+      ],
+      women: [
+        {size:'34',chest:'80–83',waist:'64–67',kr:'55호'},
+        {size:'36',chest:'83–86',waist:'67–70',kr:'55~66호'},
+        {size:'38',chest:'86–90',waist:'70–74',kr:'66호'},
+        {size:'40',chest:'90–94',waist:'74–78',kr:'66~77호'},
+        {size:'42',chest:'94–98',waist:'78–82',kr:'77호'},
+      ],
+      menMainSizes: ['M','L','XL'], menEdgeSizes: ['S','2XL'],
+      womenMainSizes: ['36','38','40'], womenEdgeSizes: ['34','42'],
+      riskSizes: ['3XL']
+    }
+  },
+  'NEW BALANCE': {
+    shoesNote: '뉴발란스는 발볼 넓은 편(2E). 990/574 시리즈는 TTS 또는 0.5 다운. 한국 소비자 선호도 높음.',
+    fit: 'runs_large',
+    womenMain: euRange(35.5, 38.5), womenEdge: [35, 39, 39.5],
+    menMain: euRange(39.5, 43.5), menEdge: [39, 44, 44.5],
+    apparel: {
+      note: '뉴발란스 공식 사이즈 가이드 기준',
+      men: [
+        {size:'S',chest:'85–90',waist:'71–76',kr:'90~95'},
+        {size:'M',chest:'90–96',waist:'76–82',kr:'95~100'},
+        {size:'L',chest:'96–103',waist:'82–88',kr:'100~105'},
+        {size:'XL',chest:'103–111',waist:'88–96',kr:'105~110'},
+        {size:'2XL',chest:'111–119',waist:'96–104',kr:'110~115'},
+      ],
+      women: [
+        {size:'XS',chest:'78–82',waist:'62–66',kr:'55호'},
+        {size:'S',chest:'82–87',waist:'66–71',kr:'55~66호'},
+        {size:'M',chest:'87–92',waist:'71–76',kr:'66호'},
+        {size:'L',chest:'92–98',waist:'76–82',kr:'66~77호'},
+        {size:'XL',chest:'98–105',waist:'82–89',kr:'77호'},
+      ],
+      menMainSizes: ['M','L','XL'], menEdgeSizes: ['S','2XL'],
+      womenMainSizes: ['S','M','L'], womenEdgeSizes: ['XS','XL'],
+      riskSizes: ['2XS','3XL']
+    }
+  }
+};
+
+function getSizeDB(brand) {
+  const b = (brand || '').toUpperCase();
+  if (b.includes('ADIDAS')) return BRAND_SIZE_DB.ADIDAS;
+  if (b.includes('NIKE')) return BRAND_SIZE_DB.NIKE;
+  if (b.includes('LACOSTE')) return BRAND_SIZE_DB.LACOSTE;
+  if (b.includes('NEW BALANCE') || b.includes('NEWBALANCE')) return BRAND_SIZE_DB['NEW BALANCE'];
+  return BRAND_SIZE_DB.ADIDAS;
+}
+
+
+// ═══════════════════════════════════════════════════════
+// NC PICKS 중심가 DB — 브랜드·카테고리별 50% 도달 중심가 (원)
+// 출처: NC_PICKS_중심가격분석_260420.xlsx / 25SS·25FW 실매출 기반
+// ═══════════════════════════════════════════════════════
+const CENTER_PRICE_DB = {"아머럭스(ARMORLUX)": {"avg": 71734, "by_cat": {"이노베이션": 71734}}, "아머럭스": {"avg": 71734, "by_cat": {"이노베이션": 71734}}, "씨엔엔 (CNN)": {"avg": 11622, "by_cat": {"이노베이션": 11622}}, "씨엔엔": {"avg": 11622, "by_cat": {"이노베이션": 11622}}, "챔피온(CHAMPION)": {"avg": 28454, "by_cat": {"남성_OPR": 28454}}, "챔피온": {"avg": 28454, "by_cat": {"남성_OPR": 28454}}, "헤지스(신사캐주얼)": {"avg": 74099, "by_cat": {"남성_OPR": 74099}}, "헤지스": {"avg": 62115, "by_cat": {"스포츠_OPR": 62115}}, "스페이드클럽(SPADECLUB)": {"avg": 21728, "by_cat": {"남성_OPR": 21728}}, "스페이드클럽": {"avg": 21728, "by_cat": {"남성_OPR": 21728}}, "일꼬르소(ILCORSO)": {"avg": 39790, "by_cat": {"남성_OPR": 39790}}, "일꼬르소": {"avg": 39790, "by_cat": {"남성_OPR": 39790}}, "알레그리(ALLEGRI)": {"avg": 113527, "by_cat": {"남성_OPR": 113527}}, "알레그리": {"avg": 113527, "by_cat": {"남성_OPR": 113527}}, "닥스(신사정장)": {"avg": 100740, "by_cat": {"남성_OPR": 100740}}, "닥스": {"avg": 74227, "by_cat": {"스포츠_OPR": 74227}}, "마에스트로(MAESTRO)": {"avg": 131173, "by_cat": {"남성_OPR": 131173}}, "마에스트로": {"avg": 131173, "by_cat": {"남성_OPR": 131173}}, "질스튜어트뉴욕(JILLSTUART N": {"avg": 98966, "by_cat": {"여성_OPR": 92947, "남성_OPR": 113010}}, "질스튜어트뉴욕": {"avg": 98966, "by_cat": {"여성_OPR": 92947, "남성_OPR": 113010}}, "티엔지티(TNGT": {"avg": 29997, "by_cat": {"남성_OPR": 29997}}, "티엔지티": {"avg": 29997, "by_cat": {"남성_OPR": 29997}}, "헤지스레이디": {"avg": 51075, "by_cat": {"여성_OPR": 51075}}, "앳코너(ATCONRNER)": {"avg": 48092, "by_cat": {"여성_OPR": 48092}}, "앳코너": {"avg": 48092, "by_cat": {"여성_OPR": 48092}}, "질바이질스튜어트": {"avg": 37730, "by_cat": {"여성_OPR": 37730}}, "아떼(ATHE)": {"avg": 101050, "by_cat": {"여성_OPR": 101050}}, "아떼": {"avg": 101050, "by_cat": {"여성_OPR": 101050}}, "닥스(마담)": {"avg": 92833, "by_cat": {"여성_OPR": 92833}}, "헤지스(골프)": {"avg": 62115, "by_cat": {"스포츠_OPR": 62115}}, "LF종합관": {"avg": 32491, "by_cat": {"스포츠_OPR": 32491}}, "닥스(골프)": {"avg": 74227, "by_cat": {"스포츠_OPR": 74227}}, "질스튜어트스포츠(JILLSTUART)": {"avg": 41979, "by_cat": {"스포츠_OPR": 41979}}, "질스튜어트스포츠": {"avg": 41979, "by_cat": {"스포츠_OPR": 41979}}, "슈페티(SPATI)": {"avg": 8998, "by_cat": {"제화_OPR": 8998}}, "슈페티": {"avg": 8998, "by_cat": {"제화_OPR": 8998}}, "캐롯츠(CARROTS)": {"avg": 13532, "by_cat": {"제화_OPR": 13532}}, "캐롯츠": {"avg": 13532, "by_cat": {"제화_OPR": 13532}}, "아웃도어 프로덕츠(OUTDOOR PR": {"avg": 21579, "by_cat": {"제화_OPR": 21579}}, "아웃도어 프로덕츠": {"avg": 21579, "by_cat": {"제화_OPR": 21579}}, "콘체르트(KONZERT)": {"avg": 15874, "by_cat": {"제화_OPR": 15874}}, "콘체르트": {"avg": 15874, "by_cat": {"제화_OPR": 15874}}, "미시간(MICHIGAN)": {"avg": 14982, "by_cat": {"제화_OPR": 14982}}, "미시간": {"avg": 14982, "by_cat": {"제화_OPR": 14982}}, "가먼트레이블(GARMENTLABLE)": {"avg": 13551, "by_cat": {"제화_OPR": 13551}}, "가먼트레이블": {"avg": 13551, "by_cat": {"제화_OPR": 13551}}, "그래피커스(GRAFIKUS)": {"avg": 15605, "by_cat": {"제화_OPR": 15605}}, "그래피커스": {"avg": 15605, "by_cat": {"제화_OPR": 15605}}, "원더플레이스": {"avg": 9658, "by_cat": {"제화_OPR": 9658}}, "래리클락(LARRY CLARK)": {"avg": 17525, "by_cat": {"제화_OPR": 21034, "남성_OPR": 12261}}, "래리클락": {"avg": 17525, "by_cat": {"제화_OPR": 21034, "남성_OPR": 12261}}, "팀코믹스(TIM COMIX)": {"avg": 18039, "by_cat": {"제화_OPR": 22024, "남성_OPR": 12062}}, "팀코믹스": {"avg": 18039, "by_cat": {"제화_OPR": 22024, "남성_OPR": 12062}}, "티피코시": {"avg": 14910, "by_cat": {"남성_OPR": 14910}}, "핍즈(PHYPS)": {"avg": 21500, "by_cat": {"남성_OPR": 21500}}, "핍즈": {"avg": 21500, "by_cat": {"남성_OPR": 21500}}, "캠브리지(신사캐주얼)": {"avg": 17172, "by_cat": {"남성_OPR": 17172}}, "캠브리지": {"avg": 17172, "by_cat": {"남성_OPR": 17172}}, "자라": {"avg": 18202, "by_cat": {"여성_OPR": 18202}}, "건원(KWONWON)": {"avg": 17388, "by_cat": {"여성_OPR": 11265, "남성_OPR": 19997, "스포츠_OPR": 28835}}, "건원": {"avg": 17388, "by_cat": {"여성_OPR": 11265, "남성_OPR": 19997, "스포츠_OPR": 28835}}, "마시모두띠": {"avg": 38029, "by_cat": {"여성_OPR": 38029}}, "예일(YALE)": {"avg": 26102, "by_cat": {"남성_OPR": 21664, "제화_OPR": 27212}}, "예일": {"avg": 26102, "by_cat": {"남성_OPR": 21664, "제화_OPR": 27212}}, "스웻레이블 (SWEAT LABLE)": {"avg": 11611, "by_cat": {"남성_OPR": 11748, "여성_OPR": 11339}}, "스웻레이블": {"avg": 11611, "by_cat": {"남성_OPR": 11748, "여성_OPR": 11339}}, "다커스(DOCKERS)": {"avg": 108891, "by_cat": {"남성_OPR": 108891}}, "다커스": {"avg": 108891, "by_cat": {"남성_OPR": 108891}}, "마드미젠 (MAT DE MISAINE": {"avg": 71906, "by_cat": {"남성_OPR": 71906}}, "마드미젠": {"avg": 71906, "by_cat": {"남성_OPR": 71906}}, "자라 홈(ZARA HOME)": {"avg": 13640, "by_cat": {"잡화_OPR": 13640}}, "자라 홈": {"avg": 13640, "by_cat": {"잡화_OPR": 13640}}, "헤지스키즈": {"avg": 36924, "by_cat": {"아동_OPR": 36924}}, "자라키즈": {"avg": 10402, "by_cat": {"아동_OPR": 11205, "기타_OPR": 3180}}, "팬콧": {"avg": 9616, "by_cat": {"아동_OPR": 9616}}, "디즈니캐릭터": {"avg": 28587, "by_cat": {"아동_OPR": 28587}}, "쁘띠뮤(PETITEMIEUX)": {"avg": 11578, "by_cat": {"아동_OPR": 11578}}, "쁘띠뮤": {"avg": 11578, "by_cat": {"아동_OPR": 11578}}, "해피버스(HAPPYBUS)": {"avg": 11522, "by_cat": {"아동_OPR": 11522}}, "해피버스": {"avg": 11522, "by_cat": {"아동_OPR": 11522}}, "삠뽀요(PIMPOLLO)": {"avg": 21695, "by_cat": {"아동_OPR": 21695}}, "삠뽀요": {"avg": 21695, "by_cat": {"아동_OPR": 21695}}, "자라(ZARA)": {"avg": 18202, "by_cat": {"여성_OPR": 18202}}, "마시모두띠(MASSIMO DUTTI)": {"avg": 38029, "by_cat": {"여성_OPR": 38029}}, "모카썸(MOCCASSOM)": {"avg": 12576, "by_cat": {"여성_OPR": 12576}}, "모카썸": {"avg": 12576, "by_cat": {"여성_OPR": 12576}}, "시에로(SIERO)": {"avg": 24435, "by_cat": {"여성_OPR": 24435}}, "시에로": {"avg": 24435, "by_cat": {"여성_OPR": 24435}}, "캘빈 클라인(CALVIN KLEIN)": {"avg": 42704, "by_cat": {"남성_OPR": 43836, "여성_OPR": 38178}}, "캘빈 클라인": {"avg": 42704, "by_cat": {"남성_OPR": 43836, "여성_OPR": 38178}}, "누페이저(NEUPAGER)": {"avg": 14767, "by_cat": {"여성_OPR": 14767}}, "누페이저": {"avg": 14767, "by_cat": {"여성_OPR": 14767}}, "와이낫어스(WHYNOTUS)": {"avg": 14578, "by_cat": {"여성_OPR": 14578}}, "와이낫어스": {"avg": 14578, "by_cat": {"여성_OPR": 14578}}, "켈빈클라인(CALVINKLIEN)": {"avg": 40612, "by_cat": {"여성_OPR": 40612}}, "켈빈클라인": {"avg": 40612, "by_cat": {"여성_OPR": 40612}}, "엠제이(MJ)": {"avg": 25506, "by_cat": {"여성_OPR": 26330, "제화_OPR": 18091}}, "엠제이": {"avg": 25506, "by_cat": {"여성_OPR": 26330, "제화_OPR": 18091}}, "바이진저(BY GINGER)": {"avg": 60781, "by_cat": {"여성_OPR": 60781}}, "바이진저": {"avg": 60781, "by_cat": {"여성_OPR": 60781}}, "로찌 (ROGGI)": {"avg": 13834, "by_cat": {"여성_OPR": 13627, "아동_OPR": 14455}}, "로찌": {"avg": 13834, "by_cat": {"여성_OPR": 13627, "아동_OPR": 14455}}, "유에스폴로(USPA)": {"avg": 24988, "by_cat": {"여성_OPR": 25387, "남성_OPR": 27040, "스포츠_OPR": 18091}}, "유에스폴로": {"avg": 24988, "by_cat": {"여성_OPR": 25387, "남성_OPR": 27040, "스포츠_OPR": 18091}}, "리오벨 (LIOBELL)": {"avg": 18091, "by_cat": {"여성_OPR": 18091}}, "리오벨": {"avg": 18091, "by_cat": {"여성_OPR": 18091}}, "이자벨마랑(ISABELMARANTET": {"avg": 125887, "by_cat": {"여성_OPR": 101592, "명품_OPR": 344545}}, "이자벨마랑": {"avg": 125887, "by_cat": {"여성_OPR": 101592, "명품_OPR": 344545}}, "산드로(SANDRO)": {"avg": 81388, "by_cat": {"여성_OPR": 81388}}, "산드로": {"avg": 81388, "by_cat": {"여성_OPR": 81388}}, "마쥬": {"avg": 148223, "by_cat": {"여성_OPR": 148223}}, "끌로디피에로(CLAUDIE PIERL": {"avg": 106629, "by_cat": {"여성_OPR": 106629}}, "끌로디피에로": {"avg": 106629, "by_cat": {"여성_OPR": 106629}}, "바네사브루노(VANESSA BRUNO": {"avg": 77474, "by_cat": {"여성_OPR": 77474}}, "바네사브루노": {"avg": 77474, "by_cat": {"여성_OPR": 77474}}, "마쥬(MAJE)": {"avg": 148223, "by_cat": {"여성_OPR": 148223}}, "메종키츠네(MAISONKITSUNE)": {"avg": 99852, "by_cat": {"남성_OPR": 149874, "여성_OPR": 66504}}, "메종키츠네": {"avg": 99852, "by_cat": {"남성_OPR": 149874, "여성_OPR": 66504}}, "볼탭스(VOLTAPS)": {"avg": 13381, "by_cat": {"스포츠_OPR": 13381}}, "볼탭스": {"avg": 13381, "by_cat": {"스포츠_OPR": 13381}}, "클라시코(CLASSICO)": {"avg": 27490, "by_cat": {"스포츠_OPR": 27490}}, "클라시코": {"avg": 27490, "by_cat": {"스포츠_OPR": 27490}}, "하바이아나스(HAVAIANAS)": {"avg": 9000, "by_cat": {"스포츠_OPR": 9000}}, "하바이아나스": {"avg": 9000, "by_cat": {"스포츠_OPR": 9000}}, "더블플래그(DOUBLE FLAG)": {"avg": 54223, "by_cat": {"스포츠_OPR": 54223}}, "더블플래그": {"avg": 54223, "by_cat": {"스포츠_OPR": 54223}}, "김영주골프": {"avg": 26784, "by_cat": {"스포츠_OPR": 26784}}, "콜마르(COLMAR)": {"avg": 25086, "by_cat": {"스포츠_OPR": 25086}}, "콜마르": {"avg": 25086, "by_cat": {"스포츠_OPR": 25086}}, "오클리(OAKLEY)": {"avg": 63271, "by_cat": {"스포츠_OPR": 63271}}, "오클리": {"avg": 63271, "by_cat": {"스포츠_OPR": 63271}}, "푸마(PUMA)": {"avg": 27396, "by_cat": {"스포츠_OPR": 27396}}, "푸마": {"avg": 27396, "by_cat": {"스포츠_OPR": 27396}}, "케이웨이 (K-WAY)": {"avg": 13511, "by_cat": {"스포츠_OPR": 13511}}, "케이웨이": {"avg": 13511, "by_cat": {"스포츠_OPR": 13511}}, "뉴발란스키즈": {"avg": 35868, "by_cat": {"아동(직매입 대리점1)": 35868}}, "시코쿠(SI-KOKU)": {"avg": 16824, "by_cat": {"스포츠_OPR": 16824}}, "시코쿠": {"avg": 16824, "by_cat": {"스포츠_OPR": 16824}}, "블루마운틴(BLUEMOUNTAIN)": {"avg": 26482, "by_cat": {"스포츠_OPR": 26482}}, "블루마운틴": {"avg": 26482, "by_cat": {"스포츠_OPR": 26482}}, "핏플랍(FITFLOP)": {"avg": 72778, "by_cat": {"스포츠_OPR": 72778}}, "핏플랍": {"avg": 72778, "by_cat": {"스포츠_OPR": 72778}}, "뉴발란스": {"avg": 66420, "by_cat": {"스포츠(직매입 대리점)": 66420}}, "넥스트도어립스(NEXTDOORLIPS": {"avg": 26813, "by_cat": {"제화_OPR": 26813}}, "넥스트도어립스": {"avg": 26813, "by_cat": {"제화_OPR": 26813}}, "겐조(KENZO)": {"avg": 111409, "by_cat": {"명품_OPR": 111409}}, "겐조": {"avg": 111409, "by_cat": {"명품_OPR": 111409}}, "막스마라(MAX MARA)": {"avg": 232394, "by_cat": {"명품_OPR": 232394}}, "막스마라": {"avg": 232394, "by_cat": {"명품_OPR": 232394}}, "아미(AMI)": {"avg": 148756, "by_cat": {"명품_OPR": 145943, "남성_OPR": 162818}}, "아미": {"avg": 148756, "by_cat": {"명품_OPR": 145943, "남성_OPR": 162818}}, "톰브라운 (THOM BROWNE)": {"avg": 411386, "by_cat": {"명품_OPR": 411386}}, "톰브라운": {"avg": 411386, "by_cat": {"명품_OPR": 411386}}, "셀프포트레이트(SELFPORTRAIT": {"avg": 180909, "by_cat": {"명품_OPR": 180909}}, "셀프포트레이트": {"avg": 180909, "by_cat": {"명품_OPR": 180909}}, "아페쎄(APC)": {"avg": 145987, "by_cat": {"명품_OPR": 145987}}, "아페쎄": {"avg": 145987, "by_cat": {"명품_OPR": 145987}}, "가니(GANNI)": {"avg": 99983, "by_cat": {"명품_OPR": 99983}}, "가니": {"avg": 99983, "by_cat": {"명품_OPR": 99983}}, "버버리(BURBERRY)": {"avg": 761296, "by_cat": {"명품_OPR": 761296}}, "버버리": {"avg": 761296, "by_cat": {"명품_OPR": 761296}}, "르메르 (LEMAIRE)": {"avg": 275126, "by_cat": {"명품_OPR": 275126}}, "르메르": {"avg": 275126, "by_cat": {"명품_OPR": 275126}}, "라푸마": {"avg": 16024, "by_cat": {"스포츠_OPR": 16024}}, "폴로랄프로렌(POLO RALPH LA": {"avg": 82945, "by_cat": {"남성_OPR": 82945}}, "폴로랄프로렌": {"avg": 82945, "by_cat": {"남성_OPR": 82945}}, "칼하트(CARHARTT)": {"avg": 59758, "by_cat": {"남성_OPR": 59758}}, "칼하트": {"avg": 59758, "by_cat": {"남성_OPR": 59758}}, "씨피컴퍼니(CP컴퍼니)": {"avg": 86277, "by_cat": {"남성_OPR": 86277}}, "씨피컴퍼니": {"avg": 86277, "by_cat": {"남성_OPR": 86277}}, "에디바우어(EDDIEBAUER)": {"avg": 11729, "by_cat": {"스포츠_OPR": 11729}}, "에디바우어": {"avg": 11729, "by_cat": {"스포츠_OPR": 11729}}, "캐릭터 ACC(CHARACTER AC": {"avg": 3545, "by_cat": {"기타_OPR": 3545}}, "캐릭터 ACC": {"avg": 3545, "by_cat": {"기타_OPR": 3545}}, "토니호크(TONYHAWK)": {"avg": 21506, "by_cat": {"제화_OPR": 21506}}, "토니호크": {"avg": 21506, "by_cat": {"제화_OPR": 21506}}, "홀리넘버7": {"avg": 16613, "by_cat": {"제화_OPR": 16613}}, "비바스튜디오(VIVA STUDIO)": {"avg": 30365, "by_cat": {"제화_OPR": 30365}}, "비바스튜디오": {"avg": 30365, "by_cat": {"제화_OPR": 30365}}, "아워스코프": {"avg": 22267, "by_cat": {"제화_OPR": 22267}}, "비얼디드키드": {"avg": 26570, "by_cat": {"제화_OPR": 26570}}, "애드오프": {"avg": 23663, "by_cat": {"제화_OPR": 23663}}, "아가타(AGATHA)": {"avg": 17542, "by_cat": {"제화_OPR": 21633, "여성_OPR": 11405}}, "아가타": {"avg": 17542, "by_cat": {"제화_OPR": 21633, "여성_OPR": 11405}}, "파르티멘토(PARTIMENTO)": {"avg": 24824, "by_cat": {"제화_OPR": 25710, "여성_OPR": 23938}}, "파르티멘토": {"avg": 24824, "by_cat": {"제화_OPR": 25710, "여성_OPR": 23938}}, "피스워커": {"avg": 16170, "by_cat": {"제화_OPR": 16170}}, "페이탈리즘": {"avg": 17011, "by_cat": {"제화_OPR": 17011}}, "86로드": {"avg": 17751, "by_cat": {"제화_OPR": 17751}}, "다니엘크레뮤(CREMIEUX)": {"avg": 32977, "by_cat": {"남성_OPR": 32977}}, "다니엘크레뮤": {"avg": 32977, "by_cat": {"남성_OPR": 32977}}, "커터앤벅(CUTTERANDBUCK)": {"avg": 37721, "by_cat": {"남성_OPR": 37721}}, "커터앤벅": {"avg": 37721, "by_cat": {"남성_OPR": 37721}}, "카미치시마(CAMICISSIMA)": {"avg": 35595, "by_cat": {"남성_OPR": 35595}}, "카미치시마": {"avg": 35595, "by_cat": {"남성_OPR": 35595}}, "버켄스탁(BIRKENSTOCK)": {"avg": 116435, "by_cat": {"명품_OPR": 116435}}, "버켄스탁": {"avg": 116435, "by_cat": {"명품_OPR": 116435}}, "아크네스튜디오(ACNESTUDIOS)": {"avg": 430954, "by_cat": {"명품_OPR": 430954}}, "아크네스튜디오": {"avg": 430954, "by_cat": {"명품_OPR": 430954}}, "밍크뮤": {"avg": 26617, "by_cat": {"아동_OPR": 26617}}, "블루독베이비(BLUEDOGBABY)": {"avg": 25663, "by_cat": {"아동_OPR": 25663}}, "블루독베이비": {"avg": 25663, "by_cat": {"아동_OPR": 25663}}, "아스페시(ASPESI)": {"avg": 70901, "by_cat": {"아동_OPR": 70901}}, "아스페시": {"avg": 70901, "by_cat": {"아동_OPR": 70901}}, "알로봇(R.로봇)": {"avg": 24453, "by_cat": {"아동_OPR": 24453}}, "알로봇": {"avg": 24453, "by_cat": {"아동_OPR": 24453}}, "래핑차일드": {"avg": 17407, "by_cat": {"아동_OPR": 17407}}, "블루독": {"avg": 32913, "by_cat": {"아동_OPR": 32913}}, "룰라비(LULABEE)": {"avg": 24075, "by_cat": {"아동_OPR": 24075}}, "룰라비": {"avg": 24075, "by_cat": {"아동_OPR": 24075}}, "봉떼비앙(BONTÉ BIEN)": {"avg": 9174, "by_cat": {"아동_OPR": 9174}}, "봉떼비앙": {"avg": 9174, "by_cat": {"아동_OPR": 9174}}, "리포즈암스(REPOSE AMS)": {"avg": 35928, "by_cat": {"아동_OPR": 35928}}, "리포즈암스": {"avg": 35928, "by_cat": {"아동_OPR": 35928}}, "위켄드하우스키즈(WEEKENDHOUS": {"avg": 21846, "by_cat": {"아동_OPR": 21846}}, "위켄드하우스키즈": {"avg": 21846, "by_cat": {"아동_OPR": 21846}}, "포인터웍스(POINTERWORKS)": {"avg": 34842, "by_cat": {"아동_OPR": 34842}}, "포인터웍스": {"avg": 34842, "by_cat": {"아동_OPR": 34842}}, "코코리(KOKORI)": {"avg": 41324, "by_cat": {"아동_OPR": 41324}}, "코코리": {"avg": 41324, "by_cat": {"아동_OPR": 41324}}, "일구포(IL-GUFO)": {"avg": 44422, "by_cat": {"아동_OPR": 44422}}, "일구포": {"avg": 44422, "by_cat": {"아동_OPR": 44422}}, "루이스미샤(LOUISE MISHA)": {"avg": 41221, "by_cat": {"아동_OPR": 41221}}, "루이스미샤": {"avg": 41221, "by_cat": {"아동_OPR": 41221}}, "마스(MARS)": {"avg": 47818, "by_cat": {"아동_OPR": 47818}}, "마스": {"avg": 47818, "by_cat": {"아동_OPR": 47818}}, "넘버21(N.21)": {"avg": 94326, "by_cat": {"아동_OPR": 94326}}, "넘버21": {"avg": 94326, "by_cat": {"아동_OPR": 94326}}, "탐베레(TAMBERE)": {"avg": 32302, "by_cat": {"아동_OPR": 32302}}, "탐베레": {"avg": 32302, "by_cat": {"아동_OPR": 32302}}, "퍼브(FUB)": {"avg": 33605, "by_cat": {"아동_OPR": 33605}}, "퍼브": {"avg": 33605, "by_cat": {"아동_OPR": 33605}}, "베로우키즈(BARROW KIDS)": {"avg": 69639, "by_cat": {"아동_OPR": 69639}}, "베로우키즈": {"avg": 69639, "by_cat": {"아동_OPR": 69639}}, "데님인더박스(D.I.B)": {"avg": 33415, "by_cat": {"아동_OPR": 33415}}, "데님인더박스": {"avg": 33415, "by_cat": {"아동_OPR": 33415}}};
+
+// 외부 업로드 중심가 DB (사용자가 xlsx 업로드 시 덮어씀)
+let CENTER_PRICE_UPLOADED = null;
+
+
+// ═══════════════════════════════════════════════════════
+// OFFER → MC 아이템명 매핑 테이블
+// 키: "CATEGORY|GENDER|PRODUCT_TYPE" (영문 오퍼 기준)
+// 값: NC PICKS MC 아이템명 (중심가 DB 조회 키)
+// ═══════════════════════════════════════════════════════
+const OFFER_TO_MC_MAP = {
+  // ── FOOTWEAR ──────────────────────────────────────────
+  "FOOTWEAR|MEN|SNEAKERS":"남성_잡화_운동화","FOOTWEAR|MEN|SHOES":"남성_잡화_운동화",
+  "FOOTWEAR|MEN|BOOTS":"남성_잡화_구두","FOOTWEAR|MEN|SANDALS":"남성플랫(샌들류)",
+  "FOOTWEAR|MEN|SLIDES":"남성플랫(샌들류)","FOOTWEAR|MEN|LOAFERS":"남성_잡화_구두",
+  "FOOTWEAR|WOMEN|SNEAKERS":"여성스니커즈","FOOTWEAR|WOMEN|SHOES":"여성_잡화_운동화",
+  "FOOTWEAR|WOMEN|BOOTS":"여성_잡화_구두","FOOTWEAR|WOMEN|SANDALS":"여성플랫(샌들류)",
+  "FOOTWEAR|WOMEN|SLIDES":"여성플랫(샌들류)",
+  "FOOTWEAR|MEN|":"남성스니커즈","FOOTWEAR|WOMEN|":"여성스니커즈","FOOTWEAR|UNISEX|":"남성스니커즈",
+
+  // ── APPAREL 상의 ───────────────────────────────────────
+  "APPAREL|MEN|TEE":"남성_캐쥬얼_반팔티","APPAREL|MEN|T-SHIRT":"남성_캐쥬얼_반팔티",
+  "APPAREL|MEN|LONGSLEEVE":"남성_캐쥬얼_긴팔티","APPAREL|MEN|LONG SLEEVE":"남성_캐쥬얼_긴팔티",
+  "APPAREL|MEN|POLO":"남성_캐쥬얼_PK티","APPAREL|MEN|HOODIE":"남성_캐쥬얼_후드티",
+  "APPAREL|MEN|SWEATSHIRT":"남성_캐쥬얼_맨투맨","APPAREL|MEN|CREWNECK":"남성_캐쥬얼_맨투맨",
+  "APPAREL|MEN|KNIT":"남성_캐쥬얼_스웨터","APPAREL|MEN|SWEATER":"남성_캐쥬얼_스웨터",
+  "APPAREL|MEN|KNITWEAR":"남성_캐쥬얼_스웨터",
+  "APPAREL|WOMEN|TEE":"여성_캐쥬얼_반팔티","APPAREL|WOMEN|T-SHIRT":"여성_캐쥬얼_반팔티",
+  "APPAREL|WOMEN|LONGSLEEVE":"여성_캐쥬얼_긴팔티","APPAREL|WOMEN|POLO":"여성_캐쥬얼_PK티",
+  "APPAREL|WOMEN|HOODIE":"여성_캐쥬얼_후드티","APPAREL|WOMEN|SWEATSHIRT":"여성_캐쥬얼_맨투맨",
+  "APPAREL|WOMEN|CREWNECK":"여성_캐쥬얼_맨투맨","APPAREL|WOMEN|KNIT":"여성_캐쥬얼_스웨터",
+  "APPAREL|WOMEN|SWEATER":"여성_캐쥬얼_스웨터","APPAREL|WOMEN|BLOUSE":"여성_정장_블라우스",
+  "APPAREL|WOMEN|SHIRT":"여성_정장_셔츠",
+
+  // ── APPAREL 하의 ───────────────────────────────────────
+  "APPAREL|MEN|PANTS":"남성_캐쥬얼_면바지","APPAREL|MEN|TROUSERS":"남성_캐쥬얼_면바지",
+  "APPAREL|MEN|SHORTS":"남성_캐쥬얼_반바지","APPAREL|MEN|JEANS":"남성_캐쥬얼_청바지",
+  "APPAREL|WOMEN|PANTS":"여성_캐쥬얼_면바지","APPAREL|WOMEN|TROUSERS":"여성_정장_면바지",
+  "APPAREL|WOMEN|SHORTS":"여성_정장_반바지","APPAREL|WOMEN|SKIRT":"여성_정장_스커트",
+  "APPAREL|WOMEN|JEANS":"여성_캐쥬얼_청바지","APPAREL|WOMEN|DRESS":"여성_정장_원피스",
+  "APPAREL|WOMEN|LEGGINGS":"여성_정장_정장바지",
+
+  // ── APPAREL 아우터 ─────────────────────────────────────
+  "APPAREL|MEN|JACKET":"남성_캐쥬얼_자켓","APPAREL|MEN|BLAZER":"골드라벨(남성)_정장_자켓",
+  "APPAREL|MEN|COAT":"남성_캐쥬얼_코트","APPAREL|MEN|DOWN JACKET":"남성_캐쥬얼_패딩점퍼",
+  "APPAREL|MEN|PUFFER":"남성_캐쥬얼_패딩점퍼","APPAREL|MEN|PARKA":"남성_캐쥬얼_패딩점퍼",
+  "APPAREL|MEN|VEST":"남성_캐쥬얼_조끼","APPAREL|MEN|GILET":"남성_캐쥬얼_조끼",
+  "APPAREL|MEN|WINDBREAKER":"남성_캐쥬얼_점퍼","APPAREL|MEN|TRACK JACKET":"남성_캐쥬얼_자켓",
+  "APPAREL|MEN|TRACK TOP":"남성_캐쥬얼_자켓",
+  "APPAREL|WOMEN|JACKET":"여성_캐쥬얼_점퍼","APPAREL|WOMEN|BLAZER":"여성_정장_자켓",
+  "APPAREL|WOMEN|COAT":"여성_정장_코트","APPAREL|WOMEN|DOWN JACKET":"여성_캐쥬얼_패딩점퍼",
+  "APPAREL|WOMEN|PUFFER":"여성_캐쥬얼_패딩점퍼","APPAREL|WOMEN|VEST":"여성_정장_조끼",
+  "APPAREL|WOMEN|GILET":"여성_정장_조끼",
+
+  // ── APPAREL 셔츠 ───────────────────────────────────────
+  "APPAREL|MEN|SHIRT":"남성_캐쥬얼_셔츠","APPAREL|MEN|OXFORD":"남성_캐쥬얼_셔츠",
+  "APPAREL|MEN|FLANNEL":"남성_캐쥬얼_셔츠",
+
+  // ── ACCESSORY ─────────────────────────────────────────
+  "ACCESSORY|MEN|CAP":"남성_잡화_캡모자","ACCESSORY|MEN|HAT":"남성_잡화_캡모자",
+  "ACCESSORY|MEN|BEANIE":"남성_잡화_캡모자","ACCESSORY|MEN|BAG":"남성_잡화_가방",
+  "ACCESSORY|MEN|BACKPACK":"백팩","ACCESSORY|MEN|WALLET":"골드라벨(남성)_잡화_지갑",
+  "ACCESSORY|MEN|POUCH":"골드라벨(남성)_잡화_파우치","ACCESSORY|MEN|SOCKS":"남성_잡화_기타 ACC",
+  "ACCESSORY|MEN|SCARF":"남성_잡화_기타 ACC","ACCESSORY|MEN|BELT":"남성_잡화_기타 ACC",
+  "ACCESSORY|WOMEN|BAG":"여성_잡화_가방","ACCESSORY|WOMEN|TOTE":"토트백",
+  "ACCESSORY|WOMEN|BACKPACK":"백팩","ACCESSORY|WOMEN|SCARF":"여성_잡화_목도리/워머/머플러",
+  "ACCESSORY|WOMEN|CAP":"여성_잡화_캡모자","ACCESSORY|WOMEN|HAT":"여성_잡화_캡모자",
+  "ACCESSORY|WOMEN|SOCKS":"여성_잡화_기타 ACC","ACCESSORY|WOMEN|BELT":"골드라벨(여성)_잡화_벨트",
+  "ACCESSORY|UNISEX|CAP":"남성_잡화_캡모자","ACCESSORY|UNISEX|BAG":"남성_잡화_가방",
+  "ACCESSORY|UNISEX|SOCKS":"남성_잡화_기타 ACC",
+};
+
+// 오퍼 SKU → MC 아이템명 변환
+// category: FOOTWEAR/APPAREL/ACCESSORY
+// gender: MEN/WOMEN/UNISEX
+// product: SNEAKERS/TEE/PANTS 등 (오퍼 파일의 product 컬럼)
+// name: 모델명 (product 없을 때 추론용)
+function offerToMC(category, gender, product, name) {
+  const cat  = (category || '').toUpperCase().trim();
+  const gen  = (gender   || '').toUpperCase().trim();
+  const prod = (product  || '').toUpperCase().trim();
+  const nm   = (name     || '').toUpperCase().trim();
+
+  // 1순위: 정확한 3키 매칭
+  const key1 = `${cat}|${gen}|${prod}`;
+  if (OFFER_TO_MC_MAP[key1]) return OFFER_TO_MC_MAP[key1];
+
+  // 2순위: 모델명에서 아이템 키워드 추론
+  const inferProd = inferProductType(nm, prod);
+  if (inferProd !== prod) {
+    const key2 = `${cat}|${gen}|${inferProd}`;
+    if (OFFER_TO_MC_MAP[key2]) return OFFER_TO_MC_MAP[key2];
+  }
+
+  // 3순위: product 부분 매칭
+  const mapKeys = Object.keys(OFFER_TO_MC_MAP);
+  const partial = mapKeys.find(k => {
+    const [mc, mg, mp] = k.split('|');
+    return mc === cat && mg === gen && mp && prod.includes(mp);
+  });
+  if (partial) return OFFER_TO_MC_MAP[partial];
+
+  // 4순위: 카테고리+성별 기본값
+  const key4 = `${cat}|${gen}|`;
+  if (OFFER_TO_MC_MAP[key4]) return OFFER_TO_MC_MAP[key4];
+
+  return null;
+}
+
+// 모델명/카테고리에서 아이템 타입 추론
+function inferProductType(name, existingProd) {
+  if (existingProd && existingProd.length > 1) return existingProd;
+  const n = name.toUpperCase();
+  if (n.includes('HOODIE') || n.includes('HOOD')) return 'HOODIE';
+  if (n.includes('SWEATSHIRT') || n.includes('CREWNECK')) return 'SWEATSHIRT';
+  if (n.includes('POLO') || n.includes(' PK ')) return 'POLO';
+  if (n.includes('TEE') || n.includes('T-SHIRT')) return 'TEE';
+  if (n.includes('JACKET') || n.includes('TRACK TOP') || n.includes('TRACK JACKET')) return 'JACKET';
+  if (n.includes('PUFFER') || n.includes('DOWN') || n.includes('PARKA')) return 'PUFFER';
+  if (n.includes('COAT') || n.includes('TRENCH')) return 'COAT';
+  if (n.includes('PANTS') || n.includes('TROUSERS') || n.includes('CHINO')) return 'PANTS';
+  if (n.includes('SHORT')) return 'SHORTS';
+  if (n.includes('JEANS') || n.includes('DENIM')) return 'JEANS';
+  if (n.includes('SKIRT')) return 'SKIRT';
+  if (n.includes('DRESS')) return 'DRESS';
+  if (n.includes('SHIRT') || n.includes('OXFORD') || n.includes('FLANNEL')) return 'SHIRT';
+  if (n.includes('KNIT') || n.includes('SWEATER') || n.includes('KNITWEAR')) return 'KNIT';
+  if (n.includes('VEST') || n.includes('GILET')) return 'VEST';
+  if (n.includes('SAMBA') || n.includes('GAZELLE') || n.includes('SNEAKER') || n.includes('TRAINER')) return 'SNEAKERS';
+  if (n.includes('BOOT')) return 'BOOTS';
+  if (n.includes('SANDAL') || n.includes('SLIDE')) return 'SLIDES';
+  if (n.includes('CAP') || n.includes('HAT') || n.includes('BEANIE')) return 'CAP';
+  if (n.includes('BAG') || n.includes('TOTE')) return 'BAG';
+  if (n.includes('BACKPACK')) return 'BACKPACK';
+  return existingProd || '';
+}
+
+// 고객 심리가 조회 — OFFER_TO_MC_MAP 기반 정확 매칭
+// category: FOOTWEAR/APPAREL/ACCESSORY, gender: MEN/WOMEN, product: TEE/PANTS 등
+function getCenterPrice(brandName, category, gender, product, name) {
+  const db = CENTER_PRICE_UPLOADED || CENTER_PRICE_DB;
+
+  // 브랜드 DB 엔트리 찾기
+  const candidates = [
+    brandName,
+    (brandName || '').split('(')[0].trim(),
+    (brandName || '').replace(/\(.*?\)/g, '').trim(),
+  ];
+  let entry = null;
+  for (const cand of candidates) {
+    if (db[cand]) { entry = db[cand]; break; }
+    // 부분 매칭
+    const keys = Object.keys(db);
+    const k = keys.find(k => k.includes(cand) || (cand.length > 2 && cand.includes(k)));
+    if (k) { entry = db[k]; break; }
+  }
+  if (!entry || !entry.by_cat) return null;
+
+  // MC 아이템명 변환
+  const mcItem = offerToMC(category, gender, product, name);
+  if (!mcItem) return null;
+
+  // by_cat에서 MC 아이템명으로 직접 조회
+  if (entry.by_cat[mcItem] !== undefined) return entry.by_cat[mcItem];
+
+  // 부분 매칭 (MC 아이템명이 키에 포함되거나 키가 MC 아이템명에 포함)
+  const catKeys = Object.keys(entry.by_cat);
+  const partial = catKeys.find(k =>
+    normCat(k) === normCat(mcItem) ||
+    normCat(k).includes(normCat(mcItem)) ||
+    normCat(mcItem).includes(normCat(k))
+  );
+  if (partial) return entry.by_cat[partial];
+
+  return null;
+}
+
+function normCat(cat) {
+  return (cat || '').replace(/[_\s]/g, '').toUpperCase();
+}
+
+// ═══════════════════════════════════════════════════════
+// BRAND TIER DATABASE (시장 기준 / NC PICKS 오퍼 판별기)
+// Tier S=30점 A=22점 B=16점 C=10점 D=4점 / 키즈 전 상품 총점 0점 (매입 제외)
+// ═══════════════════════════════════════════════════════
+const BRAND_TIER_DB = {
+  // ── S Tier: 한국 시장 최상위 인지도 ──────────────────
+  "BURBERRY":30,"MAXMARA":30,"MAX MARA":30,"THOM BROWNE":30,"TOMBROUN":30,
+  "ACNE STUDIOS":28,"ACNESTUDIOS":28,"AMI":28,"AMI PARIS":28,
+  "MAISON KITSUNE":28,"MAISONKITSUNE":28,"ME종키츠네":28,
+  "NEW BALANCE":28,"NEWBALANCE":28,"뉴발란스":28,
+  "POLO RALPH LAUREN":28,"POLO":28,"RALPH LAUREN":28,"폴로랄프로렌":28,
+  "BIRKENSTOCK":28,"버켄스탁":28,
+  "ZARA":28,"자라":28,
+  "DISNEY":24,"DISNEY CHARACTER":24,"디즈니":24,
+  "TOMMY HILFIGER":26,"TOMMYHILFIGER":26,
+  "CALVIN KLEIN":22,"CALVINKLEIN":22,"캘빈클라인":22,"캘빈 클라인":22,
+
+  // ── A Tier: 강한 브랜드 파워 ─────────────────────────
+  "LEMAIRE":24,"르메르":24,
+  "SANDRO":24,"산드로":24,
+  "MAJE":24,"마쥬":24,
+  "APC":24,"아페쎄":24,"A.P.C":24,
+  "GANNI":22,"가니":22,
+  "KENZO":22,"겐조":22,
+  "ISABEL MARANT":22,"ISABELMARANT":22,"이자벨마랑":22,
+  "SELF PORTRAIT":22,"SELFPORTRAIT":22,"셀프포트레이트":22,
+  "CP COMPANY":22,"CPCOMPANY":22,"씨피컴퍼니":22,"CP컴퍼니":22,
+  "CHAMPION":22,"챔피온":22,
+  "CARHARTT":22,"칼하트":22,
+  "PUMA":20,"푸마":20,
+  "OAKLEY":20,"오클리":20,
+  "MASSIMO DUTTI":22,"MASSIMODUTTI":22,"마시모두띠":22,
+  "HAZZYS":22,"헤지스":22,
+  "DAKS":20,"닥스":20,
+  "MAESTRO":20,"마에스트로":20,
+  "JILL STUART":20,"JILLSTUART":20,"질스튜어트":20,
+  "PARTIMENTO":22,"파르티멘토":22,
+  "VIVA STUDIO":20,"VIVASTUDIO":20,"비바스튜디오":20,
+  "CARROTS":20,"캐롯츠":20,
+  "LOUISE MISHA":18,"루이스미샤":18,
+  "LACOSTE":22,"라코스테":22,
+  "NIKE":26,"나이키":26,
+  "ADIDAS":24,"아디다스":24,
+
+  // ── B Tier: 중상위 인지도 ────────────────────────────
+  "ALLEGRI":16,"알레그리":16,
+  "VANESSA BRUNO":18,"바네사브루노":18,
+  "CLAUDIE PIERLOT":16,"끌로디피에로":16,
+  "ASPESI":16,"아스페시":16,
+  "COLMAR":16,"콜마르":16,
+  "K-WAY":16,"KWAY":16,"케이웨이":16,
+  "EDDIE BAUER":16,"EDDIEBAUER":16,"에디바우어":16,
+  "HAVAIANAS":16,"하바이아나스":16,
+  "FITFLOP":14,"핏플랍":14,
+  "LAFUMA":14,"라푸마":14,
+  "AGATHA":14,"아가타":14,
+  "JILSTUART":16,"질바이질스튜어트":16,
+  "ATCORNER":16,"ATCONRNER":16,"앳코너":16,
+  "ILCORSO":16,"일꼬르소":16,
+  "TNGT":14,"티엔지티":14,
+  "CAMBRIDGE":14,"캠브리지":14,
+  "BLUDOG":16,"블루독":16,"BLUE DOG":16,
+  "BLUEDOG":16,
+  "PHANCT":14,"팬콧":14,
+  "HAPPYBUS":14,"해피버스":14,"헤피버스":14,
+  "ATHE":12,"아떼":12,
+  "OUTDOOR PRODUCTS":12,"OUTDOORPRODUCTS":12,"아웃도어 프로덕츠":12,
+  "N.21":14,"NUMERO21":14,"넘버21":14,
+  "REPOSE AMS":14,"리포즈암스":14,
+  "WEEKEND HOUSE":14,"WEEKENDHOUSEKIDS":14,"위켄드하우스":14,
+  "IL GUFO":14,"ILGUFO":14,"일구포":14,
+  "PHYPS":14,"핍즈":14,
+  "FATALISM":14,"페이탈리즘":14,
+  "DOCKERS":12,"다커스":12,
+  "USPA":10,"유에스폴로":10,
+
+  // ── C Tier: 중하위 / 이노베이션 ─────────────────────
+  "SPADECLUB":10,"스페이드클럽":10,
+  "ILCORSO":16,
+  "ARMORLUX":8,"아머럭스":8,
+  "CNN":8,"씨엔엔":8,
+  "MICHIGAN":8,"미시간":8,
+  "KONZERT":4,"콘체르트":4,
+  "SPATI":4,"슈페티":4,
+  "GARMENTLABLE":4,"가먼트레이블":4,
+};
+
+// 브랜드명 정규화: 대소문자/공백/특수문자 제거
+function normBrand(str) {
+  return (str || '').toUpperCase()
+    .replace(/[()\[\],.\-_]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// 브랜드 Tier 점수 조회 (파일명 + 레코드명 모두 탐색)
+function getBrandScore(brandName) {
+  const candidates = [
+    normBrand(brandName),
+    normBrand(brandName.split(/[(_]/)[0]),  // 괄호 앞부분
+    normBrand(brandName.replace(/\(.*?\)/g, '')), // 괄호 제거
+  ];
+  for (const c of candidates) {
+    if (BRAND_TIER_DB[c] !== undefined) return BRAND_TIER_DB[c];
+    // 부분 매칭
+    for (const key of Object.keys(BRAND_TIER_DB)) {
+      if (c.includes(key) || key.includes(c)) return BRAND_TIER_DB[key];
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+// SCORING SYSTEM
+// ═══════════════════════════════════════════════════════
+function sBrand(r) {
+  // 1. DB에서 브랜드 점수 조회 (파일명 기준)
+  let baseScore = getBrandScore(STATE.brand);
+
+  // 2. 브랜드 내 모델 Tier 보정 (Adidas 전용)
+  const brand = normBrand(STATE.brand);
+  if (brand.includes('ADIDAS')) {
+    const name = (r.name || '').toUpperCase();
+    const sports = (r.sports || '').toUpperCase();
+    if (name.includes('SAMBA') || name.includes('GAZELLE')) baseScore = 30;
+    else if (name.includes('CAMPUS')) baseScore = 26;
+    else if (name.includes('HANDBALL') || name.includes('SPEZIAL')) baseScore = 26;
+    else if (sports === 'ORIGINALS') baseScore = 24;
+    else if (name.includes('SUPERSTAR') || name.includes('STAN SMITH')) baseScore = 22;
+    else if (name.includes('ULTRABOOST') || name.includes('NMD')) baseScore = 20;
+    else if (sports === 'RUNNING') baseScore = 16;
+    else if (sports === 'TRAINING') baseScore = 14;
+    else if (sports === 'FOOTBALL' || sports === 'SOCCER') baseScore = 8;
+    else baseScore = 18;
+  }
+
+  // 3. Nike 모델 Tier 보정
+  if (brand.includes('NIKE')) {
+    const name = (r.name || '').toUpperCase();
+    if (name.includes('DUNK') || name.includes('AIR FORCE') || name.includes('AIR MAX 1')) baseScore = 28;
+    else if (name.includes('AIR MAX 90') || name.includes('AIR MAX 95') || name.includes('BLAZER')) baseScore = 26;
+    else if (name.includes('AIR MAX') || name.includes('JORDAN')) baseScore = 24;
+    else if (name.includes('FREE') || name.includes('REACT') || name.includes('PEGASUS')) baseScore = 18;
+    else baseScore = 20;
+  }
+
+  // 4. New Balance 모델 Tier 보정
+  if (brand.includes('NEW BALANCE') || brand.includes('NEWBALANCE') || brand.includes('뉴발란스')) {
+    const name = (r.name || '').toUpperCase();
+    if (name.includes('990') || name.includes('530') || name.includes('574')) baseScore = 30;
+    else if (name.includes('2002') || name.includes('550') || name.includes('1906')) baseScore = 28;
+    else if (name.includes('996') || name.includes('327') || name.includes('9060')) baseScore = 26;
+    else baseScore = 22;
+  }
+
+  // 5. DB에 없으면 카테고리 기반 기본값
+  if (baseScore === null) {
+    const cat = (r.category || '').toUpperCase();
+    if (cat === 'FOOTWEAR') baseScore = 18;
+    else if (cat === 'APPAREL') baseScore = 14;
+    else baseScore = 12;
+  }
+
+  return Math.round(Math.min(30, Math.max(4, baseScore)));
+}
+
+// ═══════════════════════════════════════════════════════
+// COLOR SCORING — 무신사 2025 트렌드 결산 + NC PICKS 오프프라이스 소진율 근거
+// 출처: 무신사 결산리포트(2025.12), 에어포스1화이트 1위(55,600켤레),
+//       모카무스 트렌드컬러, 2026 스카이블루 상승 예고, 레이디경향 컬러풀 귀환
+// ═══════════════════════════════════════════════════════
+function sColor(r) {
+  const c = (r.color || '').toUpperCase();
+
+  // ── K등급 2점: 네온 (한국 오프프라이스 소진율 최하) ──────────
+  if (c.includes('NEON') || c.includes('FLUORESCENT')
+   || c.includes('HIGHLIGHTER') || c.includes('VOLT')
+   || (c.includes('LIME') && (c.includes('GREEN') || c.includes('PUNCH')))) return 2;
+
+  // ── J등급 4점: 멀티/AOP/프린트 (취향 편차 극심) ─────────────
+  if (c.includes('AOP') || c.includes('ALLOVER') || c.includes('ALL OVER')
+   || c.includes('MULTICOLOR') || c.includes('MULTI COLOR')
+   || c.includes('PRINTED') || c.includes('FLORAL')
+   || c.includes('CAMO') || c.includes('CAMOUFLAGE')
+   || c.includes('LEOPARD') || c.includes('ANIMAL PRINT')
+   || c.includes('TIE DYE') || c.includes('TIEDYE')) return 4;
+
+  // ── I등급 6점: 비비드 단색 (취향 편차 큼) ────────────────────
+  if (c.includes('BRIGHT YELLOW') || c.includes('VIVID YELLOW')
+   || c.includes('SIGNAL ORANGE') || c.includes('VIVID ORANGE')
+   || c.includes('VIVID RED') || c.includes('CYAN')
+   || c.includes('ELECTRIC BLUE') || c.includes('VIVID PURPLE')) return 6;
+
+  // ── S등급 20점: 블랙 단색 / 화이트 단색 (소진율 최상, 시즌 무관) ─
+  // 블랙 단색 감지: BLACK이 포함되어 있고 WHITE가 없는 경우
+  const hasBlack = c.includes('BLACK') || c.includes('CBLACK') || c === 'CORE BLACK' || c.includes('TRIPLE BLACK') || c.includes('ONYX');
+  const hasWhite = c.includes('WHITE') || c.includes('CWHITE') || c.includes('CHALK') || c.includes('CLOUD') || c.includes('CREAM') || c.includes('IVORY') || c.includes('OFF WHITE') || c.includes('OFFWHITE');
+  const hasGrey  = c.includes('GREY') || c.includes('GRAY');
+
+  if (hasBlack && !hasWhite && !hasGrey
+   && !c.includes('BROWN') && !c.includes('GREEN')
+   && !c.includes('RED') && !c.includes('BLUE')
+   && !c.includes('NAVY') && !c.includes('BURGUNDY')) return 20;
+
+  // 화이트/크림 단색 감지: 무신사 에어포스1 화이트 2025 1위 근거
+  if ((hasWhite || c.includes('CHALK') || c.includes('LINEN') || c.includes('SAND') || c.includes('IVORY'))
+   && !hasBlack && !hasGrey
+   && !c.includes('BROWN') && !c.includes('GREEN')
+   && !c.includes('RED') && !c.includes('BLUE')
+   && !c.includes('NAVY') && !c.includes('PINK')
+   && !c.includes('BURGUNDY') && !c.includes('WINE')
+   && !c.includes('MAROON') && !c.includes('ORANGE')
+   && !c.includes('CORAL') && !c.includes('RUST')
+   && !c.includes('TAN') && !c.includes('CAMEL')
+   && !c.includes('BEIGE') && !c.includes('MOCHA')) return 20;
+
+  // ── A등급 18점: 화이트+블랙 조합 ───────────────────────────
+  if (hasBlack && hasWhite) return 18;
+  // 화이트/아이보리 계열 + 다른 컬러 조합 → 18점 (SHADOW NAVY/IVORY/GUM 등)
+  if (hasWhite && (c.includes('NAVY') || c.includes('GREEN') || c.includes('BLUE')
+   || c.includes('BROWN') || c.includes('GUM') || c.includes('RED'))) return 18;
+
+  // ── B등급 16점: 베이지·브라운·크림 뉴트럴 ───────────────────
+  // 2025 트렌드컬러 모카무스 + 베이지 수요 폭발 근거
+  if (c.includes('BEIGE') || c.includes('CAMEL') || c.includes('TAN')
+   || c.includes('MOCHA') || c.includes('LATTE') || c.includes('SAND')
+   || c.includes('OATMEAL') || c.includes('NATURAL') || c.includes('NUDE')
+   || c.includes('BONE') || c.includes('ECRU') || c.includes('WHEAT')
+   || (c.includes('CREAM') && !hasBlack)
+   || (c.includes('IVORY') && !hasBlack)
+   || (c.includes('OFF WHITE') && !hasBlack)
+   || (c.includes('OFFWHITE') && !hasBlack)) return 16;
+
+  // ── C등급 14점: 그레이 계열 ──────────────────────────────
+  if (hasGrey || c.includes('SILVER') || c.includes('MELANGE')
+   || c.includes('HEATHER') || c.includes('MARL')
+   || c.includes('CHARCOAL') || c.includes('CONCRETE')) return 14;
+
+  // ── D등급 13점: 어스톤·그린·브라운 ──────────────────────
+  // 2024-25 연속 강세, Originals 헤리티지 컬러
+  if (c.includes('GREEN') || c.includes('OLIVE') || c.includes('KHAKI')
+   || c.includes('SAGE') || c.includes('FOREST') || c.includes('HUNTER')
+   || c.includes('MOSS') || c.includes('FERN') || c.includes('EARTH')
+   || c.includes('MILITARY') || c.includes('UTILITY')) return 13;
+
+  if (c.includes('BROWN') || c.includes('WALNUT') || c.includes('RUST')
+   || c.includes('TERRACOTTA') || c.includes('SIENNA') || c.includes('CHOCOLATE')
+   || c.includes('COGNAC') || c.includes('GUM') || c.includes('CARAMEL')) return 13;
+
+  // ── E등급 12점: 네이비 ───────────────────────────────────
+  if (c.includes('NAVY') || c.includes('MIDNIGHT')
+   || c.includes('DARK BLUE') || c.includes('DARKBLUE')) return 12;
+
+  // ── F등급 11점: 버건디·와인·레드 ────────────────────────
+  if (c.includes('BURGUNDY') || c.includes('WINE') || c.includes('BORDEAUX')
+   || c.includes('MAROON') || c.includes('OXBLOOD')) return 11;
+  if (c.includes('RED') || c.includes('SCARLET') || c.includes('CRIMSON')) return 11;
+
+  // ── G등급 10점: 블루 계열 (데님 수요 + 2026 틸 상승) ─────
+  if (c.includes('BLUE') || c.includes('INDIGO') || c.includes('COBALT')
+   || c.includes('TEAL') || c.includes('SKY') || c.includes('DENIM')
+   || c.includes('AZURE') || c.includes('SAPPHIRE')) return 10;
+
+  // ── H등급 8점: 파스텔·기타 (소진 불확실) ─────────────────
+  if (c.includes('PINK') || c.includes('ROSE') || c.includes('BLUSH')
+   || c.includes('LAVENDER') || c.includes('LILAC') || c.includes('VIOLET')
+   || c.includes('MAUVE') || c.includes('PEACH') || c.includes('MINT')
+   || c.includes('CORAL') || c.includes('LIGHT') || c.includes('PALE')
+   || c.includes('PASTEL') || c.includes('YELLOW') || c.includes('ORANGE')
+   || c.includes('PURPLE')) return 8;
+
+  // ── 기본값 10점 ──────────────────────────────────────────
+  return 10;
+}
+
+function sSize(r) {
+  const cat = (r.category || '').toUpperCase();
+  if (cat === 'FOOTWEAR') return 20;
+  if (cat === 'APPAREL') return 9;
+  if (cat === 'ACCESSORY' || cat === 'ACCESSORIES') return 12;
+  return 10;
+}
+
+function sPrice(r) {
+  const jsc = parseFloat(r.jsc) || 0;
+  const rrp = parseFloat(r.rrp) || 0;
+  if (!jsc || !rrp) return 5;
+  const landed = jsc * 1740 * 2.0;
+  const target = landed / 0.65;
+  const disc = 1 - (target / (rrp * 1700));
+  if (disc >= 0.60) return 20;
+  if (disc >= 0.50) return 17;
+  if (disc >= 0.40) return 13;
+  if (disc >= 0.30) return 9;
+  if (disc >= 0.20) return 5;
+  return 3;
+}
+
+function sSeason(r) {
+  const s = (r.season || '').toUpperCase();
+  if (s.includes('S26') || s.includes('F26') || s.includes('SS26') || s.includes('FW26')) return 10;
+  if (s.includes('S25') || s.includes('F25') || s.includes('SS25') || s.includes('FW25')) return 8;
+  if (s.includes('S24') || s.includes('F24') || s.includes('SS24') || s.includes('FW24')) return 5;
+  if (s.includes('S23') || s.includes('F23') || s.includes('SS23') || s.includes('FW23')) return 2;
+  return 1;
+}
+
+// ═══════════════════════════════════════════════════════
+// MODEL KEYWORD RULES — 브랜드 무관 모델명 보정 (±delta, 캡 ±6)
+// ═══════════════════════════════════════════════════════
+const MODEL_KEYWORD_RULES = [
+  { keywords: ['SAMBA','GAZELLE','CAMPUS','HANDBALL','SPEZIAL',
+               'AIR MAX 1','AIR FORCE 1','DUNK','550','990','996','574',
+               'FORUM','STAN SMITH','SUPERSTAR','SUEDE','CLASSIC LEATHER',
+               'MEXICO 66','ONITSUKA'],
+    delta: 5, label: '헤리티지·레트로' },
+  { keywords: ['ULTRABOOST','BOOST','YEEZY'],
+    delta: 4, label: 'Boost 계열' },
+  { keywords: ['COLLAB','COLLABORATION','LIMITED','SPECIAL EDITION',
+               'EXCLUSIVE','CAPSULE'],
+    delta: 4, label: '콜라보·한정판' },
+  { keywords: ['LOGO','MONOGRAM','ICONIC LOGO','HERITAGE LOGO'],
+    delta: 3, label: '로고 강조' },
+  { keywords: ['TRENCH','OVERCOAT','WOOL COAT','CASHMERE','DOWN JACKET',
+               'PARKA','ANORAK','PUFFER','PADDED JACKET'],
+    delta: 3, label: '프리미엄 아우터' },
+  { keywords: ['GORE-TEX','GORETEX','GTX','VIBRAM','FLYKNIT',
+               'PRIMEKNIT','REACT','AIR SOLE'],
+    delta: 3, label: '기술 소재·기능성' },
+  { keywords: ['ESSENTIAL','BASIC','CLASSIC','EVERYDAY','STANDARD'],
+    delta: 2, label: '베이직 스테디셀러' },
+  { keywords: ['DENIM','JEANS','JEAN','TRUCKER','CHORE COAT'],
+    delta: 2, label: '데님' },
+  { keywords: ['OVERSIZED','OVERSIZE','BOXY','RELAXED FIT','WIDE LEG'],
+    delta: 2, label: '오버사이즈 트렌드' },
+  { keywords: ['VINTAGE','WASHED','PIGMENT','ACID WASH','FADED'],
+    delta: 2, label: '빈티지 워싱' },
+  { keywords: ['SCARF','MUFFLER','TOTE','BACKPACK','BUCKET HAT',
+               'BEANIE','WALLET','BELT BAG'],
+    delta: 2, label: '프리미엄 잡화' },
+  { keywords: ['FLEECE','POLAR FLEECE','SHERPA','HOODIE','CREWNECK',
+               'SWEATSHIRT','KNITWEAR'],
+    delta: 1, label: '플리스·후드·니트' },
+  // ── 하향 ──────────────────────────────────────────────
+  { keywords: ['SWIMWEAR','SWIM TRUNK','BIKINI','BOARDSHORT',
+               'SURF SHORT','WETSUIT'],
+    delta: -4, label: '수영복 (시즌 극한정)' },
+  { keywords: ['FOOTBALL BOOT','CLEAT','RUGBY','CRICKET',
+               'HOCKEY','BOOT FG','BOOT SG','BOOT AG'],
+    delta: -4, label: '종목 특화 (수요 없음)' },
+  // 키즈는 calcScore에서 총점 0점 처리 — 키워드 룰 불필요
+  { keywords: ['UNDERWEAR','BRIEF','BOXER SHORT','LINGERIE','SOCKS'],
+    delta: -2, label: '언더웨어·양말' },
+  { keywords: ['FORMAL','BLAZER','SUIT','TUXEDO','DRESS SHIRT'],
+    delta: -2, label: '정장류 (타겟 미스매치)' },
+  { keywords: ['GOLF','TOUR EDITION'],
+    delta: -2, label: '골프 특화' },
+];
+
+function applyKeywordBonus(name, product) {
+  const text = ((name || '') + ' ' + (product || '')).toUpperCase();
+  let total = 0;
+  const matched = [];
+  for (const rule of MODEL_KEYWORD_RULES) {
+    for (const kw of rule.keywords) {
+      if (text.includes(kw)) {
+        total += rule.delta;
+        matched.push(rule.label + '(' + (rule.delta > 0 ? '+' : '') + rule.delta + ')');
+        break;
+      }
+    }
+  }
+  return { delta: Math.max(-6, Math.min(6, total)), matched };
+}
+
+function calcScore(r) {
+  // 키즈 상품 — 해외 수입 매입 제외 대상, 총점 0점 처리
+  if (r.gender === 'KIDS') {
+    return { brand: 0, color: 0, size: 0, price: 0, season: 0,
+             total: 0, keywordBonus: 0, keywordMatched: ['키즈 매입 제외'] };
+  }
+  const b = sBrand(r);
+  const c = sColor(r);
+  const sz = sSize(r);
+  const p = sPrice(r);
+  const s = sSeason(r);
+  // 모델 키워드 보정 (브랜드 점수에 가산, 30점 캡)
+  const kb = applyKeywordBonus(r.name, r.product);
+  const bFinal = Math.max(4, Math.min(30, b + kb.delta));
+  return {
+    brand: bFinal, color: c, size: sz, price: p, season: s,
+    total: bFinal + c + sz + p + s,
+    keywordBonus: kb.delta, keywordMatched: kb.matched
+  };
+}
+
+function gradeLabel(score) {
+  if (score >= 80) return '최우선 매입';
+  if (score >= 70) return '적극 권장';
+  if (score >= 60) return '조건부';
+  if (score >= 50) return '신중';
+  return '패스';
+}
+
+function gradeCls(score) {
+  if (score >= 80) return '80';
+  if (score >= 70) return '70';
+  if (score >= 60) return '60';
+  if (score >= 50) return '50';
+  return '0';
+}
+
+// ═══════════════════════════════════════════════════════
+// COLUMN DETECTION
+// ═══════════════════════════════════════════════════════
+function findCol(hdrs, ...keys) {
+  const h = hdrs.map(x => String(x || '').toUpperCase().trim());
+  for (const key of keys) {
+    const k = key.toUpperCase();
+    const exact = h.findIndex(x => x === k);
+    if (exact >= 0) return hdrs[exact];
+    const partial = h.findIndex(x => x.includes(k));
+    if (partial >= 0) return hdrs[partial];
+  }
+  return null;
+}
+
+function inferCat(row) {
+  const all = Object.values(row).join(' ').toUpperCase();
+  if (all.includes('SHOE') || all.includes('SNEAKER') || all.includes('BOOT') || all.includes('FOOTWEAR')) return 'FOOTWEAR';
+  if (all.includes('TEE') || all.includes('SHIRT') || all.includes('JACKET') || all.includes('PANTS') || all.includes('HOODIE')) return 'APPAREL';
+  if (all.includes('BAG') || all.includes('CAP') || all.includes('SOCK') || all.includes('ACCESSORY')) return 'ACCESSORY';
+  return 'OTHER';
+}
+
+function inferGender(row) {
+  const all = Object.values(row).join(' ').toUpperCase();
+  if (all.includes('WOMEN') || all.includes('WOMAN') || all.includes('LADIES') || all.includes('FEMALE')) return 'WOMEN';
+  if (all.includes('KIDS') || all.includes('CHILD') || all.includes('INFANT') || all.includes('JUNIOR') || all.includes('JR')) return 'KIDS';
+  if (all.includes('MEN') || all.includes('MENS') || all.includes('MALE')) return 'MEN';
+  return 'UNISEX';
+}
+
+function inferSeason(row) {
+  const all = Object.values(row).join(' ').toUpperCase();
+  const m = all.match(/(SS|FW|S|F)(2[0-9])/);
+  if (m) return m[1] + m[2];
+  return 'N/A';
+}
+
+// ═══════════════════════════════════════════════════════
+// EXCEL PARSING
+// ═══════════════════════════════════════════════════════
+function findBestSheet(wb) {
+  let best = wb.SheetNames[0];
+  let bestCount = 0;
+  for (const name of wb.SheetNames) {
+    const ws = wb.Sheets[name];
+    const ref = ws['!ref'];
+    if (!ref) continue;
+    const range = XLSX.utils.decode_range(ref);
+    const count = (range.e.r - range.s.r) * (range.e.c - range.s.c);
+    if (count > bestCount) { bestCount = count; best = name; }
+  }
+  return best;
+}
+
+const APPAREL_SIZES = ['2XS','XS','S','M','L','XL','2XL','3XL','XXS','XXL','XXXL','XXX'];
+const SHOE_SIZES_RE = /^[0-9]{2,3}(\.[05])?$/;
+
+function parseXLSX(buf, filename) {
+  const wb = XLSX.read(buf, { type: 'array' });
+  const sheetName = findBestSheet(wb);
+  const ws = wb.Sheets[sheetName];
+  const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  // find header row
+  let headerRow = 0;
+  for (let i = 0; i < Math.min(10, raw.length); i++) {
+    const filled = raw[i].filter(x => x !== '').length;
+    if (filled >= 4) { headerRow = i; break; }
+  }
+  const hdrs = raw[headerRow].map(x => String(x || '').trim());
+
+  // detect columns
+  const cArticle = findCol(hdrs, 'ARTICLE', 'MATERIAL', 'STYLE', 'SKU', 'ITEM NO', 'ITEM NUMBER');
+  const cName    = findCol(hdrs, 'MODEL', 'NAME', 'DESCRIPTION', 'PRODUCT NAME', 'ITEM NAME', 'ARTICLE DESC');
+  const cGender  = findCol(hdrs, 'GENDER', 'SEX', 'TARGET');
+  const cSeason  = findCol(hdrs, 'SEASON', 'DELIVERY');
+  const cCat     = findCol(hdrs, 'CATEGORY', 'DIVISION', 'CLASS', 'GROUP');
+  const cSports  = findCol(hdrs, 'SPORTS', 'SPORT', 'DEPARTMENT', 'BRAND DIV', 'FRANCHISE');
+  const cProduct = findCol(hdrs, 'PRODUCT TYPE', 'PRODUCT', 'SUBCATEGORY', 'SUB CLASS');
+  const cColor   = findCol(hdrs, 'COLOR', 'COLOUR', 'COLORWAY');
+  const cRrp     = findCol(hdrs, 'RRP', 'RETAIL', 'MSRP', 'PRICE', 'EUR RRP');
+  const cJsc     = findCol(hdrs, 'JSC', 'WHOLESALE', 'COST', 'NET', 'OFFER PRICE', 'WSP', 'COST PRICE');
+
+  // detect size columns
+  const sizeColIdxs = [];
+  hdrs.forEach((h, i) => {
+    const up = h.toUpperCase().trim();
+    if (SHOE_SIZES_RE.test(up) || APPAREL_SIZES.includes(up)) sizeColIdxs.push(i);
+  });
+
+  const records = [];
+  for (let i = headerRow + 1; i < raw.length; i++) {
+    const row = raw[i];
+    if (!row || row.every(x => x === '')) continue;
+
+    const obj = {};
+    hdrs.forEach((h, idx) => { obj[h] = row[idx] ?? ''; });
+
+    const article = String(obj[cArticle] || `ROW_${i}`).trim();
+    const name    = String(obj[cName] || '').trim().toUpperCase();
+    const color   = String(obj[cColor] || '').trim().toUpperCase();
+    const rrp     = parseFloat(String(obj[cRrp] || '0').replace(/[^0-9.]/g, '')) || 0;
+    const jsc     = parseFloat(String(obj[cJsc] || '0').replace(/[^0-9.]/g, '')) || 0;
+
+    let gender   = cGender  ? String(obj[cGender] || '').toUpperCase().trim()  : '';
+    let season   = cSeason  ? String(obj[cSeason] || '').toUpperCase().trim()  : '';
+    let category = cCat     ? String(obj[cCat] || '').toUpperCase().trim()     : '';
+    let sports   = cSports  ? String(obj[cSports] || '').toUpperCase().trim()  : '';
+    let product  = cProduct ? String(obj[cProduct] || '').toUpperCase().trim() : '';
+
+    if (!gender)   gender   = inferGender(obj);
+    if (!season)   season   = inferSeason(obj);
+    if (!category) category = inferCat(obj);
+
+    // normalize gender
+    if (gender.includes('WOMEN') || gender.includes('LADIES') || gender.includes('FEMALE') || gender === 'W') gender = 'WOMEN';
+    else if (gender.includes('MEN') || gender === 'M') gender = 'MEN';
+    else if (gender.includes('KID') || gender.includes('CHILD') || gender.includes('JR') || gender === 'K') gender = 'KIDS';
+    else if (gender.includes('UNISEX') || gender === 'U') gender = 'UNISEX';
+
+    // normalize category
+    if (category.includes('FOOT') || category.includes('SHOE') || category === 'FW') category = 'FOOTWEAR';
+    else if (category.includes('APP') || category === 'AP') category = 'APPAREL';
+    else if (category.includes('ACC')) category = 'ACCESSORY';
+
+    // collect sizes
+    const sizes = {};
+    let qty = 0;
+    if (sizeColIdxs.length > 0) {
+      sizeColIdxs.forEach(idx => {
+        const sz = hdrs[idx];
+        const v = parseInt(row[idx]) || 0;
+        if (v > 0) { sizes[sz] = v; qty += v; }
+      });
+    }
+    // fallback: look for QTY/QUANTITY column
+    if (qty === 0) {
+      const cQty = findCol(hdrs, 'QTY', 'QUANTITY', 'TOTAL', 'PIECES', 'PCS');
+      if (cQty) qty = parseInt(String(obj[cQty] || '0').replace(/[^0-9]/g, '')) || 0;
+    }
+
+    if (qty === 0 && sizeColIdxs.length === 0) continue; // skip empty
+
+    const rec = { article, name, gender, season, category, sports, product, color, rrp, jsc, qty, sizes };
+    const sc = calcScore(rec);
+    rec.score = sc.total;
+    rec.scoreBrand = sc.brand; rec.scoreColor = sc.color;
+    rec.scoreSize = sc.size;  rec.scorePrice = sc.price; rec.scoreSeason = sc.season;
+
+    // 고객 심리가 조회 — OFFER_TO_MC_MAP 기반 정확 매칭
+    const mcItem = offerToMC(category, gender, product, name);
+    const cp = getCenterPrice(STATE.brand, category, gender, product, name);
+    rec.centerPrice = (cp && !isNaN(cp) && cp > 0) ? cp : null;
+    rec.mcItem = mcItem || '—';  // 매칭된 MC 아이템명 (확인용)
+    rec.targetKrw   = (rec.jsc && rec.jsc > 0) ? Math.round(rec.jsc * 1740 * 2.0 / 0.65) : null;
+    if (rec.centerPrice && rec.targetKrw && rec.centerPrice > 0) {
+      const ratio = (rec.centerPrice - rec.targetKrw) / rec.centerPrice * 100;
+      rec.centerVsTarget = isNaN(ratio) ? null : Math.round(ratio);
+    } else {
+      rec.centerVsTarget = null;
+    }
+
+    records.push(rec);
+  }
+  return records;
+}
+
+// ═══════════════════════════════════════════════════════
+// LOAD DATA → DASHBOARD
+// ═══════════════════════════════════════════════════════
+function loadData(records, brand, filename) {
+  STATE.data = records;
+  STATE.brand = brand;
+  STATE.filename = filename || brand;
+
+  const cats = [...new Set(records.map(r => r.category))].filter(Boolean).sort();
+  const gens = [...new Set(records.map(r => r.gender))].filter(Boolean).sort();
+  STATE.cats = cats;
+  STATE.gens = gens;
+  STATE.activeCats = new Set(cats);
+  STATE.activeGens = new Set(gens);
+
+  // build filters
+  const catF = document.getElementById('catFilters');
+  const genF = document.getElementById('genFilters');
+  catF.innerHTML = '';
+  genF.innerHTML = '';
+
+  const allCatBtn = mkFilterBtn('전체', true, () => toggleAll('cat'));
+  catF.appendChild(allCatBtn);
+  cats.forEach(c => {
+    catF.appendChild(mkFilterBtn(c, true, () => toggleFilter('cat', c)));
+  });
+
+  const allGenBtn = mkFilterBtn('전체', true, () => toggleAll('gen'));
+  genF.appendChild(allGenBtn);
+  gens.forEach(g => {
+    genF.appendChild(mkFilterBtn(g, true, () => toggleFilter('gen', g)));
+  });
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+
+  renderAll(getFiltered());
+}
+
+function mkFilterBtn(label, active, onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn' + (active ? ' active' : '');
+  btn.textContent = label;
+  btn.onclick = onClick;
+  return btn;
+}
+
+function toggleAll(type) {
+  if (type === 'cat') {
+    const allActive = STATE.activeCats.size === STATE.cats.length;
+    STATE.activeCats = allActive ? new Set() : new Set(STATE.cats);
+    document.querySelectorAll('#catFilters .filter-btn').forEach((b,i) => {
+      b.classList.toggle('active', i === 0 ? !allActive : !allActive);
+    });
+  } else {
+    const allActive = STATE.activeGens.size === STATE.gens.length;
+    STATE.activeGens = allActive ? new Set() : new Set(STATE.gens);
+    document.querySelectorAll('#genFilters .filter-btn').forEach((b,i) => {
+      b.classList.toggle('active', i === 0 ? !allActive : !allActive);
+    });
+  }
+  renderAll(getFiltered());
+}
+
+function toggleFilter(type, val) {
+  const set = type === 'cat' ? STATE.activeCats : STATE.activeGens;
+  const list = type === 'cat' ? STATE.cats : STATE.gens;
+  const filterEl = type === 'cat' ? '#catFilters' : '#genFilters';
+
+  if (set.has(val)) set.delete(val); else set.add(val);
+
+  const btns = document.querySelectorAll(filterEl + ' .filter-btn');
+  btns.forEach((b, i) => {
+    if (i === 0) b.classList.toggle('active', set.size === list.length);
+    else b.classList.toggle('active', set.has(list[i - 1]));
+  });
+  renderAll(getFiltered());
+}
+
+function getFiltered() {
+  return STATE.data.filter(r =>
+    STATE.activeCats.has(r.category) && STATE.activeGens.has(r.gender)
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════
+function renderAll(d) {
+  const total = d.length;
+  const totalQty = d.reduce((s, r) => s + r.qty, 0);
+  const totalRrp = d.reduce((s, r) => s + r.rrp * r.qty, 0);
+  const avgScore = total > 0 ? (d.reduce((s, r) => s + r.score, 0) / total) : 0;
+
+  const prime = d.filter(r => r.score >= 80);
+  const primeQty = prime.reduce((s, r) => s + r.qty, 0);
+
+  // header
+  document.getElementById('hdrFile').textContent = STATE.filename;
+  document.getElementById('hdrMeta').textContent =
+    `SKU ${total.toLocaleString()} / ${totalQty.toLocaleString()} pcs / RRP €${Math.round(totalRrp/1000)}K / ${new Date().toLocaleDateString('ko-KR')}`;
+  // 브랜드 Tier badge
+  const tierScore = getBrandScore(STATE.brand);
+  const tierBadge = document.getElementById('hdrTierBadge');
+  if (tierScore !== null) {
+    const tier = tierScore >= 28 ? 'S' : tierScore >= 20 ? 'A' : tierScore >= 14 ? 'B' : tierScore >= 8 ? 'C' : 'D';
+    const tierBg = {S:'#e8604c',A:'#2ea860',B:'#f2c94c',C:'#888',D:'#ccc'}[tier];
+    tierBadge.textContent = `브랜드 Tier ${tier} · ${tierScore}점`;
+    tierBadge.style.background = tierBg + '30';
+    tierBadge.style.borderColor = tierBg;
+    tierBadge.style.color = tier === 'B' ? '#b7860a' : tier === 'D' ? '#888' : tierBg;
+    tierBadge.style.display = 'block';
+  } else {
+    tierBadge.style.display = 'none';
+  }
+
+  // KPIs
+  document.getElementById('kpiPrime').textContent = prime.length.toLocaleString();
+  document.getElementById('kpiPrimeSub').textContent = `${primeQty.toLocaleString()} pcs · ${total > 0 ? Math.round(prime.length/total*100) : 0}%`;
+  document.getElementById('kpiQty').textContent = totalQty.toLocaleString();
+  document.getElementById('kpiQtySub').textContent = `${total.toLocaleString()} SKU`;
+  document.getElementById('kpiRrp').textContent = '€' + (totalRrp/1000000).toFixed(1) + 'M';
+  document.getElementById('kpiRrpSub').textContent = `평균 €${total > 0 ? Math.round(totalRrp/totalQty) : 0} / pcs`;
+  document.getElementById('kpiAvg').textContent = avgScore.toFixed(1);
+  document.getElementById('kpiAvgSub').textContent = gradeLabel(Math.round(avgScore));
+
+  // Grade distribution
+  const grades = [
+    { label: '80+', cls: 'g80', min: 80, max: 200 },
+    { label: '70–79', cls: 'g70', min: 70, max: 79 },
+    { label: '60–69', cls: 'g60', min: 60, max: 69 },
+    { label: '50–59', cls: 'g50', min: 50, max: 59 },
+    { label: '~49', cls: 'g0', min: 0, max: 49 },
+  ];
+  const maxSkus = total || 1;
+  const gradeBarsEl = document.getElementById('gradeBars');
+  gradeBarsEl.innerHTML = '';
+  const gradeQtys = [];
+  grades.forEach(g => {
+    const items = d.filter(r => r.score >= g.min && r.score <= g.max);
+    const qty = items.reduce((s, r) => s + r.qty, 0);
+    gradeQtys.push(qty);
+    const pct = Math.round(items.length / maxSkus * 100);
+    gradeBarsEl.innerHTML += `
+      <div class="grade-row ${g.cls}">
+        <span class="grade-label">${g.label}</span>
+        <div class="grade-bar-wrap"><div class="grade-bar-fill" style="width:${pct}%"></div></div>
+        <span class="grade-count">${items.length} SKU · ${qty.toLocaleString()} pcs</span>
+      </div>`;
+  });
+
+  // Grade donut
+  destroyChart('gradeDonut');
+  CHARTS.gradeDonut = new Chart(document.getElementById('gradeDonut'), {
+    type: 'doughnut',
+    data: {
+      labels: grades.map(g => g.label),
+      datasets: [{ data: gradeQtys, backgroundColor: ['#1a7a4a','#2ea860','#f2c94c','#f2994a','#eb5757'], borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } } } }
+  });
+
+  // Category donut
+  renderDonut('catDonut', d, r => r.category, ['#1a1a2e','#e8604c','#2ea860','#f2c94c','#6b6b8a','#aaaacc']);
+  renderDonut('genDonut', d, r => r.gender, ['#1a1a2e','#e8604c','#2ea860','#f2c94c']);
+  renderDonut('seasonDonut', d, r => r.season, ['#1a1a2e','#e8604c','#2ea860','#f2c94c','#f2994a','#6b6b8a','#aaaacc']);
+
+  // Color analysis
+  const colorGroups = {};
+  d.forEach(r => {
+    const cg = getColorGroup(r.color);
+    colorGroups[cg] = (colorGroups[cg] || 0) + r.qty;
+  });
+  destroyChart('colorDonut');
+  const cgEntries = Object.entries(colorGroups).sort((a,b) => b[1]-a[1]);
+  CHARTS.colorDonut = new Chart(document.getElementById('colorDonut'), {
+    type: 'doughnut',
+    data: {
+      labels: cgEntries.map(e => e[0]),
+      datasets: [{ data: cgEntries.map(e => e[1]), backgroundColor: cgEntries.map(e => COLOR_MAP[e[0]] || '#aaa'), borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } } } }
+  });
+
+  // Color bar top 8
+  const colorRaw = {};
+  d.forEach(r => { const c = r.color || 'N/A'; colorRaw[c] = (colorRaw[c] || 0) + r.qty; });
+  const top8 = Object.entries(colorRaw).sort((a,b) => b[1]-a[1]).slice(0,8);
+  destroyChart('colorBar');
+  CHARTS.colorBar = new Chart(document.getElementById('colorBar'), {
+    type: 'bar',
+    data: {
+      labels: top8.map(e => e[0].length > 18 ? e[0].substring(0,16)+'…' : e[0]),
+      datasets: [{ data: top8.map(e => e[1]), backgroundColor: '#1a1a2e', borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { ticks: { font: { size: 11 } } } } }
+  });
+
+  // Price bar
+  const priceBuckets = {'~€50': 0,'€51–100': 0,'€101–150': 0,'€151–200': 0,'€200+': 0};
+  d.forEach(r => {
+    if (r.rrp <= 50) priceBuckets['~€50'] += r.qty;
+    else if (r.rrp <= 100) priceBuckets['€51–100'] += r.qty;
+    else if (r.rrp <= 150) priceBuckets['€101–150'] += r.qty;
+    else if (r.rrp <= 200) priceBuckets['€151–200'] += r.qty;
+    else priceBuckets['€200+'] += r.qty;
+  });
+  destroyChart('priceBar');
+  CHARTS.priceBar = new Chart(document.getElementById('priceBar'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(priceBuckets),
+      datasets: [{ data: Object.values(priceBuckets), backgroundColor: '#e8604c', borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { ticks: { font: { size: 11 } } } } }
+  });
+
+  // Season bar
+  const seasonMap = {};
+  d.forEach(r => { seasonMap[r.season] = (seasonMap[r.season] || 0) + r.qty; });
+  const sEntries = Object.entries(seasonMap).sort((a,b) => b[1]-a[1]).slice(0,8);
+  destroyChart('seasonBar');
+  CHARTS.seasonBar = new Chart(document.getElementById('seasonBar'), {
+    type: 'bar',
+    data: {
+      labels: sEntries.map(e => e[0]),
+      datasets: [{ data: sEntries.map(e => e[1]), backgroundColor: '#1a1a2e', borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { ticks: { font: { size: 11 } } } } }
+  });
+
+  // Size analysis
+  renderSizeAnalysis(d, total);
+
+  // Top SKU table
+  const sorted = [...d].sort((a,b) => b.score - a.score).slice(0, 20);
+  const tbody = document.getElementById('skuTableBody');
+  tbody.innerHTML = '';
+  sorted.forEach((r, i) => {
+    const g = gradeCls(r.score);
+    tbody.innerHTML += `<tr>
+      <td style="color:var(--text2)">${i+1}</td>
+      <td style="font-family:var(--mono);font-size:11px">${r.article}</td>
+      <td style="font-weight:600">${r.name}</td>
+      <td>${r.gender}</td>
+      <td>${r.category}</td>
+      <td style="font-family:var(--mono)">${r.season}</td>
+      <td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.color}</td>
+      <td style="font-family:var(--mono)">€${Number(r.rrp).toFixed(2)}</td>
+      <td style="font-family:var(--mono)">€${Number(r.jsc).toFixed(2)}</td>
+      <td style="font-family:var(--mono)">${r.qty.toLocaleString()}</td>
+      <td><span style="font-size:11px;color:var(--text2)" title="${(r.keywordMatched||[]).join(', ')}">${r.scoreBrand}${r.keywordBonus ? '<sup style=\"color:var(--coral);font-size:9px\">' + (r.keywordBonus>0?'+':'') + r.keywordBonus + '</sup>' : ''}</span></td>
+      <td><span style="font-size:11px;color:var(--text2)">${r.scoreColor}</span></td>
+      <td><span style="font-size:11px;color:var(--text2)">${r.scoreSize}</span></td>
+      <td><span style="font-size:11px;color:var(--text2)">${r.scorePrice}</span></td>
+      <td><span style="font-size:11px;color:var(--text2)">${r.scoreSeason}</span></td>
+      <td><span class="score-badge s${g}">${r.score}</span></td>
+      <td><span class="grade-tag t${g}">${gradeLabel(r.score)}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:${(r.centerPrice && !isNaN(r.centerPrice)) ? 'var(--green1)' : 'var(--text2)'}"
+          title="${r.mcItem ? 'MC매칭: ' + r.mcItem : '매칭없음'}">
+        ${(r.centerPrice && !isNaN(r.centerPrice)) ? r.centerPrice.toLocaleString() + '원' : '—'}
+        ${r.mcItem && r.mcItem !== '—' ? '<br><span style=\"font-size:9px;color:var(--text2);font-family:var(--sans)\">' + r.mcItem + '</span>' : ''}</td>
+      <td style="font-family:var(--mono);font-size:11px">
+        ${(r.targetKrw && !isNaN(r.targetKrw)) ? r.targetKrw.toLocaleString() + '원' : '—'}</td>
+      <td style="font-family:var(--mono);font-size:11px;font-weight:600;
+        color:${(r.centerVsTarget === null || isNaN(r.centerVsTarget)) ? 'var(--text2)' : r.centerVsTarget >= 0 ? 'var(--green1)' : 'var(--red)'}">
+        ${(r.centerVsTarget === null || isNaN(r.centerVsTarget)) ? '—' : (r.centerVsTarget >= 0 ? '↑' : '↓') + Math.abs(r.centerVsTarget) + '%'}</td>
+    </tr>\``;
+  });
+
+  // Insights
+  renderInsights(d);
+}
+
+function renderDonut(id, d, keyFn, colors) {
+  const map = {};
+  d.forEach(r => { const k = keyFn(r) || 'N/A'; map[k] = (map[k] || 0) + r.qty; });
+  const entries = Object.entries(map).sort((a,b) => b[1]-a[1]);
+  destroyChart(id);
+  CHARTS[id] = new Chart(document.getElementById(id), {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{ data: entries.map(e => e[1]), backgroundColor: colors, borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } } } }
+  });
+}
+
+function destroyChart(id) {
+  if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
+}
+
+const COLOR_MAP = {
+  'WHITE/BLACK': '#d0d0d0','BLACK': '#2d2d2d','WHITE': '#f0f0f0','CREAM': '#f5e6c8',
+  'GREEN': '#5cb85c','BROWN': '#8B6914','GREY': '#888','NAVY': '#1f3a6e',
+  'BURGUNDY': '#722f37','NEON': '#ccff00','MULTI': '#c0a0f0','OTHER': '#aaa'
+};
+
+function getColorGroup(color) {
+  const c = (color || '').toUpperCase();
+  if (c.includes('WHITE') && c.includes('BLACK')) return 'WHITE/BLACK';
+  if (c === 'CBLACK' || c === 'BLACK' || c === 'CORE BLACK') return 'BLACK';
+  if (c.includes('WHITE') || c.includes('CREAM') || c.includes('OFF WHITE')) return 'WHITE';
+  if (c.includes('CREAM') || c.includes('CHALK') || c.includes('OFF')) return 'CREAM';
+  if (c.includes('GREEN')) return 'GREEN';
+  if (c.includes('BROWN') || c.includes('TAN')) return 'BROWN';
+  if (c.includes('GREY') || c.includes('GRAY')) return 'GREY';
+  if (c.includes('NAVY')) return 'NAVY';
+  if (c.includes('BURGUNDY') || c.includes('WINE')) return 'BURGUNDY';
+  if (c.includes('NEON') || c.includes('FLUOR')) return 'NEON';
+  if (c.includes('AOP') || c.includes('MULTI')) return 'MULTI';
+  return 'OTHER';
+}
+
+// ═══════════════════════════════════════════════════════
+// SIZE ANALYSIS
+// ═══════════════════════════════════════════════════════
+function renderSizeAnalysis(d, total) {
+  const db = getSizeDB(STATE.brand);
+  const el = document.getElementById('sizeAnalysis');
+
+  const footwear = d.filter(r => r.category === 'FOOTWEAR');
+  const apparel  = d.filter(r => r.category === 'APPAREL');
+
+  let html = '';
+
+  if (footwear.length > 0) {
+    html += `<div style="margin-bottom:20px">`;
+    html += `<div class="size-section-title">👟 FOOTWEAR 사이즈 분포</div>`;
+    html += `<div style="font-size:11px;color:var(--text2);margin-bottom:10px">${db.shoesNote}</div>`;
+
+    ['WOMEN','MEN'].forEach(g => {
+      const items = footwear.filter(r => r.gender === g);
+      if (items.length === 0) return;
+
+      const sizeMap = {};
+      items.forEach(r => {
+        Object.entries(r.sizes).forEach(([sz, qty]) => {
+          const n = parseFloat(sz);
+          if (!isNaN(n)) sizeMap[n] = (sizeMap[n] || 0) + qty;
+        });
+      });
+      if (Object.keys(sizeMap).length === 0) return;
+
+      const main = g === 'WOMEN' ? db.womenMain : db.menMain;
+      const edge = g === 'WOMEN' ? db.womenEdge : db.menEdge;
+      const allSizes = Object.keys(sizeMap).map(Number).sort((a,b) => a-b);
+      const maxQty = Math.max(...Object.values(sizeMap)) || 1;
+
+      html += `<div class="size-section-title" style="margin-top:12px">${g}</div>`;
+      html += `<div style="display:flex;flex-direction:column;gap:4px">`;
+      allSizes.forEach(sz => {
+        const qty = sizeMap[sz] || 0;
+        const pct = Math.round(qty / maxQty * 100);
+        const isMain = main.includes(sz);
+        const isEdge = edge.includes(sz);
+        const barColor = isMain ? 'var(--green1)' : isEdge ? 'var(--yellow)' : 'var(--red)';
+        const tag = isMain ? '주력' : isEdge ? '엣지' : '소진주의';
+        const tagColor = isMain ? 'var(--green1)' : isEdge ? '#b7860a' : 'var(--red)';
+        html += `<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+          <span style="width:36px;text-align:right;font-family:var(--mono);font-weight:500">${sz}</span>
+          <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div>
+          </div>
+          <span style="width:60px;font-family:var(--mono);color:var(--text2)">${qty.toLocaleString()}</span>
+          <span style="width:50px;font-size:10px;color:${tagColor}">${tag}</span>
+        </div>`;
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (apparel.length > 0) {
+    html += `<div>`;
+    html += `<div class="size-section-title">👕 APPAREL 사이즈 분포</div>`;
+
+    // product tabs
+    const products = [...new Set(apparel.map(r => r.product || 'OTHER'))].filter(Boolean);
+    const tabId = 'apTab_' + Date.now();
+    html += `<div class="size-tabs" id="${tabId}">`;
+    html += `<button class="size-tab active" onclick="apTabClick('${tabId}','ALL',this)">전체</button>`;
+    products.forEach(p => {
+      html += `<button class="size-tab" onclick="apTabClick('${tabId}','${p}',this)">${p}</button>`;
+    });
+    html += '</div>';
+
+    html += `<div id="${tabId}_content"></div>`;
+    html += '</div>';
+
+    // store apparel data for tab rendering
+    window._apData = apparel;
+    window._apTabId = tabId;
+    setTimeout(() => renderApTab(tabId, 'ALL', db), 0);
+  }
+
+  el.innerHTML = html;
+}
+
+function apTabClick(tabId, product, btn) {
+  document.querySelectorAll(`#${tabId} .size-tab`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderApTab(tabId, product, getSizeDB(STATE.brand));
+}
+
+function renderApTab(tabId, product, db) {
+  const apparel = window._apData || [];
+  const items = product === 'ALL' ? apparel : apparel.filter(r => (r.product || 'OTHER') === product);
+  const contentEl = document.getElementById(tabId + '_content');
+  if (!contentEl) return;
+
+  const ALL_AP_SIZES = ['2XS','XXS','XS','S','M','L','XL','XXL','2XL','3XL','XXXL'];
+  let html = '';
+
+  ['MEN','WOMEN'].forEach(g => {
+    const gItems = items.filter(r => r.gender === g);
+    if (gItems.length === 0) return;
+
+    const sizeMap = {};
+    gItems.forEach(r => {
+      ALL_AP_SIZES.forEach(sz => {
+        if (r.sizes[sz]) sizeMap[sz] = (sizeMap[sz] || 0) + r.sizes[sz];
+      });
+      // also check direct size columns
+      Object.entries(r.sizes).forEach(([sz, qty]) => {
+        const up = sz.toUpperCase();
+        if (ALL_AP_SIZES.includes(up)) sizeMap[up] = (sizeMap[up] || 0) + qty;
+      });
+    });
+
+    const presentSizes = ALL_AP_SIZES.filter(sz => sizeMap[sz] > 0);
+    if (presentSizes.length === 0) return;
+
+    const main = g === 'MEN' ? db.apparel.menMainSizes : db.apparel.womenMainSizes;
+    const edge = g === 'MEN' ? db.apparel.menEdgeSizes : db.apparel.womenEdgeSizes;
+    const risk = db.apparel.riskSizes || [];
+    const maxQty = Math.max(...presentSizes.map(sz => sizeMap[sz])) || 1;
+
+    html += `<div class="size-section-title" style="margin-top:10px">${g}</div>`;
+    html += `<div style="display:flex;flex-direction:column;gap:4px">`;
+    presentSizes.forEach(sz => {
+      const qty = sizeMap[sz] || 0;
+      const pct = Math.round(qty / maxQty * 100);
+      const isRisk = risk.includes(sz);
+      const isMain = main.includes(sz);
+      const isEdge = edge.includes(sz);
+      const barColor = isRisk ? 'var(--red)' : isMain ? 'var(--green1)' : isEdge ? 'var(--yellow)' : '#aaa';
+      const tag = isRisk ? '소진주의' : isMain ? '주력' : isEdge ? '엣지' : '';
+      const tagColor = isRisk ? 'var(--red)' : isMain ? 'var(--green1)' : '#b7860a';
+      html += `<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+        <span style="width:36px;text-align:right;font-family:var(--mono);font-weight:500">${sz}</span>
+        <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div>
+        </div>
+        <span style="width:60px;font-family:var(--mono);color:var(--text2)">${qty.toLocaleString()}</span>
+        <span style="width:50px;font-size:10px;color:${tagColor}">${tag}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  contentEl.innerHTML = html || '<div style="font-size:12px;color:var(--text2);padding:12px 0">사이즈 데이터 없음</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+// INSIGHTS
+// ═══════════════════════════════════════════════════════
+function renderInsights(d) {
+  const prime = d.filter(r => r.score >= 80);
+  const mid   = d.filter(r => r.score >= 60 && r.score < 80);
+  const low   = d.filter(r => r.score < 50);
+  const total = d.length;
+
+  const topNames = [...new Set(prime.map(r => r.name))].slice(0,3).join(', ');
+  const ins1 = prime.length > 0
+    ? `상위 ${prime.length}개 SKU (${Math.round(prime.length/total*100)}%) 적극 매입. 주력: ${topNames || '—'}`
+    : '80점 이상 SKU 없음';
+
+  const midTop = mid.sort((a,b) => b.score-a.score).slice(0,3).map(r => r.name).join(', ');
+  const ins2 = mid.length > 0
+    ? `${mid.length}개 SKU 선별 검토 필요. 컬러·사이즈 보완 시 매입 가능. 주요: ${midTop || '—'}`
+    : '선별 검토 대상 없음';
+
+  const kidsQty = d.filter(r => r.gender === 'KIDS').reduce((s,r) => s+r.qty, 0);
+  const totalQty = d.reduce((s,r) => s+r.qty, 0);
+  const kidsPct = totalQty > 0 ? Math.round(kidsQty/totalQty*100) : 0;
+  const ins3 = `패스 SKU ${low.length}개 (키즈 0점 포함). 가격 경쟁력 미달 SKU 네고 또는 제외 권고.`;
+
+  const avgJsc = d.length > 0 ? (d.reduce((s,r) => s+r.jsc*r.qty, 0) / d.reduce((s,r) => s+r.qty, 0)) : 0;
+  const ins4 = `평균 JSC €${avgJsc.toFixed(1)}. 가격점수 낮은 SKU는 목표 JSC 역산 후 네고 진행. 시즌 S23 이전 상품 매입가 추가 할인 요청 권장.`;
+
+  document.getElementById('ins1').textContent = ins1;
+  document.getElementById('ins2').textContent = ins2;
+  document.getElementById('ins3').textContent = ins3;
+  document.getElementById('ins4').textContent = ins4;
+
+  // 키워드 보정 인사이트
+  const topKw = d.filter(r => r.keywordBonus > 0).sort((a,b) => b.keywordBonus - a.keywordBonus).slice(0,3);
+  const botKw = d.filter(r => r.keywordBonus < 0).sort((a,b) => a.keywordBonus - b.keywordBonus).slice(0,3);
+  if (topKw.length > 0) {
+    const kwNote = topKw.map(r => `${r.name}(+${r.keywordBonus})`).join(', ');
+    document.getElementById('ins2').textContent += ` | 키워드 상향: ${kwNote}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// EXCEL EXPORT
+// ═══════════════════════════════════════════════════════
+const EXPORT_COLS = [
+  { key: 'article',    label: 'ARTICLE',         default: true },
+  { key: 'name',       label: 'MODEL_NAME',       default: true },
+  { key: 'gender',     label: 'GENDER',           default: true },
+  { key: 'category',   label: 'CATEGORY',         default: true },
+  { key: 'season',     label: 'SEASON',           default: true },
+  { key: 'sports',     label: 'SPORTS',           default: false },
+  { key: 'product',    label: 'PRODUCT_TYPE',     default: false },
+  { key: 'color',      label: 'COLOR',            default: true },
+  { key: 'rrp',        label: 'RRP_EUR',          default: true },
+  { key: 'jsc',        label: 'OFFER_PRICE_EUR',          default: true },
+  { key: 'qty',        label: 'QTY',              default: true },
+  { key: 'score',      label: 'NC_PICKS_SCORE',   default: true },
+  { key: 'grade',      label: 'GRADE',            default: true },
+  { key: 'brandTier',  label: 'BRAND_TIER',       default: true },
+  { key: 'scoreBrand', label: 'SCORE_BRAND',      default: true },
+  { key: 'keywordBonus', label: 'KEYWORD_BONUS',    default: false },
+  { key: 'keywordNote', label: 'KEYWORD_NOTE',     default: false },
+  { key: 'scoreColor', label: 'SCORE_COLOR',      default: true },
+  { key: 'scoreSize',  label: 'SCORE_SIZE',       default: true },
+  { key: 'scorePrice', label: 'SCORE_PRICE',      default: true },
+  { key: 'scoreSeason',label: 'SCORE_SEASON',     default: true },
+  { key: 'mcItem',        label: 'MC_ITEM_MATCHED',     default: false },
+  { key: 'centerPrice',   label: 'CUSTOMER_PSYCH_PRICE', default: true },
+  { key: 'targetKrw',     label: 'TARGET_SELL_KRW_CALC', default: true },
+  { key: 'centerVsTarget',label: 'CENTER_VS_TARGET',   default: true },
+  { key: 'landedKrw',     label: 'LANDED_KRW',          default: false },
+  { key: 'targetSellKrw', label: 'TARGET_SELL_KRW', default: false },
+  { key: 'discountPct',   label: 'DISCOUNT_VS_RRP',  default: false },
+];
+
+let exportMode = 'filtered';
+
+function openExportModal(mode) {
+  exportMode = mode;
+  const modal = document.getElementById('exportModal');
+  modal.classList.add('open');
+
+  // set default selection
+  selectOpt(mode === 'all' ? 2 : mode === 'top20' ? 3 : 1);
+
+  // build col checkboxes
+  const container = document.getElementById('colCheckboxes');
+  container.innerHTML = '';
+  EXPORT_COLS.forEach(col => {
+    const label = document.createElement('label');
+    label.className = 'col-check-label';
+    label.innerHTML = `<input type="checkbox" name="ecol" value="${col.key}" ${col.default ? 'checked' : ''}> ${col.label}`;
+    container.appendChild(label);
+  });
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function selectOpt(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('opt'+i).classList.toggle('selected', i === n);
+  });
+  exportMode = n === 1 ? 'filtered' : n === 2 ? 'all' : 'top20';
+}
+
+function doExport() {
+  const selectedCols = [...document.querySelectorAll('#colCheckboxes input:checked')].map(i => i.value);
+  if (selectedCols.length === 0) { showToast('포함할 컬럼을 1개 이상 선택하세요'); return; }
+
+  let data = [];
+  if (exportMode === 'all') {
+    data = [...STATE.data].sort((a,b) => b.score - a.score);
+  } else if (exportMode === 'top20') {
+    data = [...getFiltered()].sort((a,b) => b.score - a.score).slice(0, 20);
+  } else {
+    data = [...getFiltered()].sort((a,b) => b.score - a.score);
+  }
+
+  // build rows
+  const headers = selectedCols.map(k => EXPORT_COLS.find(c => c.key === k)?.label || k);
+  const rows = data.map(r => {
+    // computed fields
+    const landedKrw = r.jsc ? Math.round(r.jsc * 1740 * 2.0) : 0;
+    const targetSellKrw = landedKrw ? Math.round(landedKrw / 0.65) : 0;
+    const discountPct = (r.rrp && targetSellKrw) ? ((1 - targetSellKrw / (r.rrp * 1700)) * 100).toFixed(1) + '%' : '—';
+
+    const cvt = r.centerVsTarget;
+    const cpDisp = (cvt === null || isNaN(cvt)) ? '—'
+      : (cvt >= 0 ? '↑' : '↓') + Math.abs(cvt) + '%';
+    const ts = getBrandScore(STATE.brand);
+    const brandTier = ts === null ? '?' : ts >= 28 ? 'S' : ts >= 20 ? 'A' : ts >= 14 ? 'B' : ts >= 8 ? 'C' : 'D';
+    const extended = { ...r, grade: gradeLabel(r.score), brandTier, landedKrw, targetSellKrw, discountPct,
+      mcItem: r.mcItem || '—',
+      centerPrice: r.centerPrice || '—', centerVsTarget: cpDisp,
+      keywordBonus: r.keywordBonus || 0,
+      keywordNote: (r.keywordMatched || []).join(' / ') };
+    return selectedCols.map(k => extended[k] ?? '');
+  });
+
+  // create workbook
+  const wb = XLSX.utils.book_new();
+
+  // main data sheet
+  const wsData = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // column widths
+  const colWidths = headers.map((h, i) => {
+    const maxLen = Math.max(h.length, ...rows.map(r => String(r[i] || '').length));
+    return { wch: Math.min(maxLen + 2, 30) };
+  });
+  wsData['!cols'] = colWidths;
+
+  XLSX.utils.book_append_sheet(wb, wsData, 'NC_PICKS_SCORE');
+
+  // summary sheet
+  const filtered = getFiltered();
+  const allData = STATE.data;
+  const summaryRows = [
+    ['NC PICKS 오퍼 평가 요약', ''],
+    ['파일명', STATE.filename],
+    ['출력일시', new Date().toLocaleString('ko-KR')],
+    ['출력범위', exportMode === 'all' ? '전체' : exportMode === 'top20' ? 'TOP 20' : '필터 적용'],
+    ['', ''],
+    ['지표', '필터 적용', '전체'],
+    ['총 SKU', filtered.length, allData.length],
+    ['총 수량(pcs)', filtered.reduce((s,r)=>s+r.qty,0), allData.reduce((s,r)=>s+r.qty,0)],
+    ['총 RRP(EUR)', filtered.reduce((s,r)=>s+r.rrp*r.qty,0).toFixed(0), allData.reduce((s,r)=>s+r.rrp*r.qty,0).toFixed(0)],
+    ['평균 점수', (filtered.reduce((s,r)=>s+r.score,0)/Math.max(filtered.length,1)).toFixed(1),
+                 (allData.reduce((s,r)=>s+r.score,0)/Math.max(allData.length,1)).toFixed(1)],
+    ['', ''],
+    ['등급', '필터 SKU수', '필터 수량'],
+    ['80+ 최우선', filtered.filter(r=>r.score>=80).length, filtered.filter(r=>r.score>=80).reduce((s,r)=>s+r.qty,0)],
+    ['70–79 적극권장', filtered.filter(r=>r.score>=70&&r.score<80).length, filtered.filter(r=>r.score>=70&&r.score<80).reduce((s,r)=>s+r.qty,0)],
+    ['60–69 조건부', filtered.filter(r=>r.score>=60&&r.score<70).length, filtered.filter(r=>r.score>=60&&r.score<70).reduce((s,r)=>s+r.qty,0)],
+    ['50–59 신중', filtered.filter(r=>r.score>=50&&r.score<60).length, filtered.filter(r=>r.score>=50&&r.score<60).reduce((s,r)=>s+r.qty,0)],
+    ['~49 패스', filtered.filter(r=>r.score<50).length, filtered.filter(r=>r.score<50).reduce((s,r)=>s+r.qty,0)],
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+  wsSummary['!cols'] = [{wch:22},{wch:18},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, '요약');
+
+  // filename
+  const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const rangeLabel = exportMode === 'all' ? 'ALL' : exportMode === 'top20' ? 'TOP20' : 'FILTERED';
+  const fname = `NC_PICKS_${STATE.brand.toUpperCase().replace(/\s+/g,'_')}_${rangeLabel}_${today}.xlsx`;
+
+  XLSX.writeFile(wb, fname);
+  closeExportModal();
+  showToast(`✅ ${fname} 다운로드 완료 (${data.length}개 SKU)`);
+}
+
+// ═══════════════════════════════════════════════════════
+// FILE HANDLING
+// ═══════════════════════════════════════════════════════
+let pendingBuf = null;
+let pendingFile = null;
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingBuf = new Uint8Array(ev.target.result);
+    pendingFile = file;
+    previewFile(pendingBuf, file.name);
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function previewFile(buf, filename) {
+  const wb = XLSX.read(buf, { type: 'array' });
+  const sheetName = findBestSheet(wb);
+  const ws = wb.Sheets[sheetName];
+  const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  let headerRow = 0;
+  for (let i = 0; i < Math.min(10, raw.length); i++) {
+    if (raw[i].filter(x => x !== '').length >= 4) { headerRow = i; break; }
+  }
+  const hdrs = raw[headerRow].map(x => String(x || '').trim()).filter(Boolean);
+
+  const needed = ['article/style', 'name/model', 'rrp/price', 'jsc/cost'];
+  const found = {};
+  needed.forEach(n => {
+    const keys = n.split('/');
+    found[n] = hdrs.some(h => keys.some(k => h.toUpperCase().includes(k.toUpperCase())));
+  });
+
+  const panel = document.getElementById('previewPanel');
+  const colsEl = document.getElementById('previewCols');
+  const msgEl = document.getElementById('previewMsg');
+
+  colsEl.innerHTML = hdrs.slice(0, 30).map(h => `<span class="preview-col matched">${h}</span>`).join('');
+
+  const missingKeys = needed.filter(n => !found[n]);
+  if (missingKeys.length > 0) {
+    msgEl.textContent = `⚠️ 일부 컬럼 미감지: ${missingKeys.join(', ')} — 추론 모드로 분석합니다.`;
+  } else {
+    msgEl.textContent = `✅ ${hdrs.length}개 컬럼 감지. 분석 준비 완료.`;
+  }
+
+  panel.style.display = 'block';
+  document.getElementById('startScreen').style.display = 'flex';
+}
+
+function runAnalysis() {
+  if (!pendingBuf) return;
+  const brand = pendingFile.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ').trim();
+  STATE.brand = brand; // centerPrice 계산 전에 브랜드 먼저 설정
+  const records = parseXLSX(pendingBuf, pendingFile.name);
+  if (records.length === 0) { showToast('❌ 데이터를 찾을 수 없습니다. 파일 구조를 확인하세요.'); return; }
+  loadData(records, brand, pendingFile.name);
+}
+
+// ═══════════════════════════════════════════════════════
+// SAMPLE DATA (ADIDAS MINI DEMO — replace with full data)
+// ═══════════════════════════════════════════════════════
+function loadSample() {
+  STATE.brand = 'ADIDAS'; // centerPrice 계산 전에 브랜드 먼저 설정
+  const sample = generateSampleData();
+  loadData(sample, 'ADIDAS', 'ADIDAS_Sample_Offer.xlsx');
+}
+
+function generateSampleData() {
+  const models = [
+    {name:'SAMBA OG', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['CWHITE/CBLACK/GUM3','CBROWN/WONDER TAN','CBLACK/CWHITE'], rrp:138, jsc:24.84},
+    {name:'GAZELLE', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['NAVY/GOLD','SHADOW GREEN','COLLEGIATE GREEN'], rrp:120, jsc:22.5},
+    {name:'CAMPUS 00S', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['CWHITE/CBLACK','WONDER TAN/OFF WHITE'], rrp:110, jsc:20.0},
+    {name:'SUPERSTAR', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['CWHITE/CBLACK','CBLACK/CWHITE'], rrp:100, jsc:18.5},
+    {name:'ULTRABOOST 22', sports:'RUNNING', cat:'FOOTWEAR', colors:['CBLACK/CBLACK','CWHITE/CWHITE'], rrp:180, jsc:35.0},
+    {name:'FORUM LOW', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['CWHITE/CBLACK','CLOUD WHITE/CREW BLUE'], rrp:100, jsc:19.0},
+    {name:'NMD R1', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['CBLACK/CARBON','CWHITE/HALO SILVER'], rrp:130, jsc:25.0},
+    {name:'TIRO 21 TRACK JACKET', sports:'TRAINING', cat:'APPAREL', colors:['BLACK/WHITE','NAVY BLUE'], rrp:65, jsc:12.0},
+    {name:'ESSENTIALS TEE', sports:'TRAINING', cat:'APPAREL', colors:['WHITE','BLACK','GREY'], rrp:30, jsc:6.0},
+    {name:'BECKENBAUER TRACK TOP', sports:'ORIGINALS', cat:'APPAREL', colors:['WHITE/BLACK','BLACK/WHITE'], rrp:90, jsc:17.5},
+    {name:'3S CAP', sports:'ORIGINALS', cat:'ACCESSORY', colors:['BLACK','WHITE','NAVY'], rrp:25, jsc:5.0},
+    {name:'PREDATOR ACCURACY', sports:'FOOTBALL', cat:'FOOTWEAR', colors:['CORE BLACK/WHITE','WHITE/SOLAR RED'], rrp:90, jsc:18.0},
+    {name:'STAN SMITH', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['CWHITE/GREEN','CWHITE/CWHITE'], rrp:100, jsc:19.0},
+    {name:'HANDBALL SPEZIAL', sports:'ORIGINALS', cat:'FOOTWEAR', colors:['SHADOW NAVY/IVORY/GUM','WONDER CLAY/OFF WHITE'], rrp:110, jsc:22.0},
+    {name:'TREFOIL HOODIE', sports:'ORIGINALS', cat:'APPAREL', colors:['BLACK','WHITE','COLLEGIATE GREEN'], rrp:70, jsc:14.0},
+  ];
+  const genders = ['MEN','WOMEN','KIDS','UNISEX'];
+  const seasons = ['S25','F25','S24','F24','S23'];
+  const records = [];
+  let id = 1000;
+
+  models.forEach(m => {
+    m.colors.forEach(color => {
+      genders.forEach(g => {
+        if (g === 'KIDS' && Math.random() > 0.3) return;
+        if (g === 'UNISEX' && m.cat !== 'ACCESSORY') return;
+        const season = seasons[Math.floor(Math.random() * seasons.length)];
+        const qty = Math.floor(Math.random() * 800 + 50);
+        const sizes = {};
+        if (m.cat === 'FOOTWEAR') {
+          const szRange = g === 'WOMEN' ? [36,36.5,37,37.5,38,38.5,39,39.5,40] : [39,40,40.5,41,41.5,42,42.5,43,44];
+          szRange.forEach(sz => { sizes[sz] = Math.floor(Math.random() * 80 + 10); });
+        } else if (m.cat === 'APPAREL') {
+          ['XS','S','M','L','XL','2XL'].forEach(sz => { sizes[sz] = Math.floor(Math.random() * 60 + 5); });
+        } else {
+          sizes['ONE SIZE'] = qty;
+        }
+        const rec = {
+          article: 'AD' + (id++), name: m.name, gender: g,
+          season, category: m.cat, sports: m.sports,
+          product: m.cat === 'APPAREL' ? (m.name.includes('TEE') ? 'TEE' : m.name.includes('JACKET') || m.name.includes('TOP') ? 'JACKET' : 'HOODIE') : '',
+          color, rrp: m.rrp + Math.floor(Math.random() * 10 - 5),
+          jsc: m.jsc + Math.random() * 2 - 1,
+          qty, sizes
+        };
+        const sc = calcScore(rec);
+        rec.score = sc.total; rec.scoreBrand = sc.brand; rec.scoreColor = sc.color;
+        rec.scoreSize = sc.size; rec.scorePrice = sc.price; rec.scoreSeason = sc.season;
+        // 고객 심리가 계산
+        const mcItem = offerToMC(m.cat, g, rec.product, m.name);
+        const cp = getCenterPrice(STATE.brand, m.cat, g, rec.product, m.name);
+        rec.mcItem = mcItem || '—';
+        rec.centerPrice = (cp && !isNaN(cp) && cp > 0) ? cp : null;
+        rec.targetKrw = rec.jsc ? Math.round(rec.jsc * 1740 * 2.0 / 0.65) : null;
+        rec.centerVsTarget = (rec.centerPrice && rec.targetKrw && rec.centerPrice > 0)
+          ? Math.round((rec.centerPrice - rec.targetKrw) / rec.centerPrice * 100) : null;
+        records.push(rec);
+      });
+    });
+  });
+  return records;
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+// ── 고객 심리가 분석 모달 ──────────────────────────────
+function openMainPriceModal() {
+  const modal = document.getElementById('mainPriceModal');
+  // iframe src 지연 로드 (최초 1회만)
+  const iframe = modal.querySelector('iframe');
+  if (iframe && !iframe.dataset.loaded) {
+    iframe.dataset.loaded = '1';
+  }
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeMainPriceModal() {
+  document.getElementById('mainPriceModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const m = document.getElementById('mainPriceModal');
+    if (m && m.style.display === 'flex') closeMainPriceModal();
+  }
+});
+
+// ── CENTER PRICE FILE LOADER ──────────────────────────
+function loadCenterPriceFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      const hdrs = raw[1] || raw[0];
+      const brandIdx   = hdrs.findIndex(h => String(h).includes('브랜드'));
+      const catIdx     = hdrs.findIndex(h => String(h).includes('카테고리'));
+      const centerIdx  = hdrs.findIndex(h => String(h).includes('50%도달_중심가'));
+      const avgIdx     = hdrs.findIndex(h => String(h).includes('평균단가'));
+
+      if (brandIdx < 0 || centerIdx < 0) {
+        showToast('❌ 중심가 파일 형식 오류 — 브랜드·50%도달_중심가 컬럼 필요');
+        return;
+      }
+      const db = {};
+      for (let i = 2; i < raw.length; i++) {
+        const row = raw[i];
+        const brand  = String(row[brandIdx] || '').trim();
+        const cat    = String(row[catIdx] || '').trim();
+        const center = parseInt(row[centerIdx]) || 0;
+        if (!brand || !center) continue;
+        if (!db[brand]) db[brand] = { avg: 0, by_cat: {}, _vals: [] };
+        db[brand]._vals.push(center);
+        db[brand].by_cat[cat] = center;
+        // 괄호 없는 브랜드명도 등록
+        const clean = brand.split('(')[0].trim();
+        if (clean !== brand) {
+          if (!db[clean]) db[clean] = { avg: 0, by_cat: {}, _vals: [] };
+          db[clean]._vals.push(center);
+          db[clean].by_cat[cat] = center;
+        }
+      }
+      // 평균 계산
+      let count = 0;
+      for (const k of Object.keys(db)) {
+        db[k].avg = Math.round(db[k]._vals.reduce((a,b)=>a+b,0) / db[k]._vals.length);
+        delete db[k]._vals;
+        count++;
+      }
+      CENTER_PRICE_UPLOADED = db;
+      document.getElementById('cpDbLabel').textContent = `✅ 업로드 완료 (${count}개 브랜드)`;
+      document.getElementById('cpDbLabel').style.color = 'var(--coral)';
+      showToast(`✅ 중심가 DB 업데이트 완료 — ${count}개 브랜드`);
+    } catch(e) {
+      showToast('❌ 파일 읽기 오류: ' + e.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// close modal on backdrop click
+document.getElementById('exportModal').addEventListener('click', function(e) {
+  if (e.target === this) closeExportModal();
+});
+
+</script>
+
+<!-- ── 고객 심리가 분석 모달 ── -->
+<div id="mainPriceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;width:100%;height:100%;max-width:1400px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;top:0;left:0;right:0;height:48px;background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:10;border-radius:12px 12px 0 0;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.15em;color:var(--coral);">NC PICKS · OPR</span>
+        <span style="color:#fff;font-size:13px;font-weight:600;">시즌별 중심가격 분석 — peak week & center price tracker</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a href="https://lovelyjinny.github.io/NC_PICKS_MAIN-PRICE/" target="_blank"
+           style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:7px;padding:6px 13px;font-size:11px;text-decoration:none;font-family:var(--sans);">
+          ↗ 새 탭
+        </a>
+        <button onclick="closeMainPriceModal()"
+          style="background:var(--coral);border:none;color:#fff;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);">
+          ✕ 닫기
+        </button>
+      </div>
+    </div>
+    <iframe src="https://lovelyjinny.github.io/NC_PICKS_MAIN-PRICE/" width="100%" height="100%"
+      style="border:none;display:block;padding-top:48px;box-sizing:border-box;"></iframe>
+  </div>
+</div>
+
+</body>
+</html>
