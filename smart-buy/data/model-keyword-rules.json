@@ -1,0 +1,228 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1377-1424",
+    "cap_note": "룰별 첫 매칭 키워드 1개만 카운트, 총합 -6~+6 캡",
+    "kids_handling": "키즈는 calcScore 첫 분기에서 총점 0 처리 (별도 키워드 룰 없음)"
+  },
+  "cap": {
+    "min": -6,
+    "max": 6
+  },
+  "match_mode": "first_keyword_per_rule",
+  "rules": [
+    {
+      "keywords": [
+        "SAMBA",
+        "GAZELLE",
+        "CAMPUS",
+        "HANDBALL",
+        "SPEZIAL",
+        "AIR MAX 1",
+        "AIR FORCE 1",
+        "DUNK",
+        "550",
+        "990",
+        "996",
+        "574",
+        "FORUM",
+        "STAN SMITH",
+        "SUPERSTAR",
+        "SUEDE",
+        "CLASSIC LEATHER",
+        "MEXICO 66",
+        "ONITSUKA"
+      ],
+      "delta": 5,
+      "label": "헤리티지·레트로"
+    },
+    {
+      "keywords": [
+        "ULTRABOOST",
+        "BOOST",
+        "YEEZY"
+      ],
+      "delta": 4,
+      "label": "Boost 계열"
+    },
+    {
+      "keywords": [
+        "COLLAB",
+        "COLLABORATION",
+        "LIMITED",
+        "SPECIAL EDITION",
+        "EXCLUSIVE",
+        "CAPSULE"
+      ],
+      "delta": 4,
+      "label": "콜라보·한정판"
+    },
+    {
+      "keywords": [
+        "LOGO",
+        "MONOGRAM",
+        "ICONIC LOGO",
+        "HERITAGE LOGO"
+      ],
+      "delta": 3,
+      "label": "로고 강조"
+    },
+    {
+      "keywords": [
+        "TRENCH",
+        "OVERCOAT",
+        "WOOL COAT",
+        "CASHMERE",
+        "DOWN JACKET",
+        "PARKA",
+        "ANORAK",
+        "PUFFER",
+        "PADDED JACKET"
+      ],
+      "delta": 3,
+      "label": "프리미엄 아우터"
+    },
+    {
+      "keywords": [
+        "GORE-TEX",
+        "GORETEX",
+        "GTX",
+        "VIBRAM",
+        "FLYKNIT",
+        "PRIMEKNIT",
+        "REACT",
+        "AIR SOLE"
+      ],
+      "delta": 3,
+      "label": "기술 소재·기능성"
+    },
+    {
+      "keywords": [
+        "ESSENTIAL",
+        "BASIC",
+        "CLASSIC",
+        "EVERYDAY",
+        "STANDARD"
+      ],
+      "delta": 2,
+      "label": "베이직 스테디셀러"
+    },
+    {
+      "keywords": [
+        "DENIM",
+        "JEANS",
+        "JEAN",
+        "TRUCKER",
+        "CHORE COAT"
+      ],
+      "delta": 2,
+      "label": "데님"
+    },
+    {
+      "keywords": [
+        "OVERSIZED",
+        "OVERSIZE",
+        "BOXY",
+        "RELAXED FIT",
+        "WIDE LEG"
+      ],
+      "delta": 2,
+      "label": "오버사이즈 트렌드"
+    },
+    {
+      "keywords": [
+        "VINTAGE",
+        "WASHED",
+        "PIGMENT",
+        "ACID WASH",
+        "FADED"
+      ],
+      "delta": 2,
+      "label": "빈티지 워싱"
+    },
+    {
+      "keywords": [
+        "SCARF",
+        "MUFFLER",
+        "TOTE",
+        "BACKPACK",
+        "BUCKET HAT",
+        "BEANIE",
+        "WALLET",
+        "BELT BAG"
+      ],
+      "delta": 2,
+      "label": "프리미엄 잡화"
+    },
+    {
+      "keywords": [
+        "FLEECE",
+        "POLAR FLEECE",
+        "SHERPA",
+        "HOODIE",
+        "CREWNECK",
+        "SWEATSHIRT",
+        "KNITWEAR"
+      ],
+      "delta": 1,
+      "label": "플리스·후드·니트"
+    },
+    {
+      "keywords": [
+        "SWIMWEAR",
+        "SWIM TRUNK",
+        "BIKINI",
+        "BOARDSHORT",
+        "SURF SHORT",
+        "WETSUIT"
+      ],
+      "delta": -4,
+      "label": "수영복 (시즌 극한정)"
+    },
+    {
+      "keywords": [
+        "FOOTBALL BOOT",
+        "CLEAT",
+        "RUGBY",
+        "CRICKET",
+        "HOCKEY",
+        "BOOT FG",
+        "BOOT SG",
+        "BOOT AG"
+      ],
+      "delta": -4,
+      "label": "종목 특화 (수요 없음)"
+    },
+    {
+      "keywords": [
+        "UNDERWEAR",
+        "BRIEF",
+        "BOXER SHORT",
+        "LINGERIE",
+        "SOCKS"
+      ],
+      "delta": -2,
+      "label": "언더웨어·양말"
+    },
+    {
+      "keywords": [
+        "FORMAL",
+        "BLAZER",
+        "SUIT",
+        "TUXEDO",
+        "DRESS SHIRT"
+      ],
+      "delta": -2,
+      "label": "정장류 (타겟 미스매치)"
+    },
+    {
+      "keywords": [
+        "GOLF",
+        "TOUR EDITION"
+      ],
+      "delta": -2,
+      "label": "골프 특화"
+    }
+  ]
+}

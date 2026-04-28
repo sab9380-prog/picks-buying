@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1442-1447 (calcScore 첫 분기)",
+    "policy": "NC OPR 키즈 직매입 대리점 운영 — 해외 수입 라인에서는 제외"
+  },
+  "rule": {
+    "gender_equals": "KIDS"
+  },
+  "action": {
+    "brand": 0,
+    "color": 0,
+    "size": 0,
+    "price": 0,
+    "season": 0,
+    "total": 0,
+    "keywordBonus": 0,
+    "keywordMatched": [
+      "키즈 매입 제외"
+    ]
+  },
+  "reason": "해외 수입 매입 대상 아님 (NC OPR 정책)"
+}

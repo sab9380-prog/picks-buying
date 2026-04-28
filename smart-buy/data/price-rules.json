@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1350-1363 (sPrice)",
+    "note": "JSC/RRP 결측 시 5점, 할인율 ≥ tier.discount 첫 만족 → tier.score, 모두 미만 → 3점"
+  },
+  "fx": {
+    "jsc_eur_krw": 1740,
+    "rrp_eur_krw": 1700,
+    "known_inconsistency": "v12 C3 버그 — JSC와 RRP에 다른 환율 사용. v1.4에서 단일 환율로 통일 권장하나 v12 값 보존"
+  },
+  "cost_multiplier": 2,
+  "target_imu": 0.65,
+  "landed_cost_formula": "jsc_eur * jsc_eur_krw * cost_multiplier",
+  "target_price_formula": "landed_cost / target_imu",
+  "discount_formula": "1 - (target_price / (rrp_eur * rrp_eur_krw))",
+  "discount_tiers": [
+    {
+      "discount": 0.6,
+      "score": 20
+    },
+    {
+      "discount": 0.5,
+      "score": 17
+    },
+    {
+      "discount": 0.4,
+      "score": 13
+    },
+    {
+      "discount": 0.3,
+      "score": 9
+    },
+    {
+      "discount": 0.2,
+      "score": 5
+    }
+  ],
+  "fallback_score": 3,
+  "missing_data_score": 5
+}
