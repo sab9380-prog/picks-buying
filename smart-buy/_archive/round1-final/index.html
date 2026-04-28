@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스마트 매입 — NC PICKS v13-Lite</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #181b22;
+    --border: #232833;
+    --text: #e6e8ee;
+    --muted: #8a93a4;
+    --accent: #4d9aff;
+    --buy: #2ecc71;
+    --counter: #f39c12;
+    --pass: #95a5a6;
+    --grade-80: #2ecc71;
+    --grade-70: #27ae60;
+    --grade-60: #f39c12;
+    --grade-50: #e67e22;
+    --grade-0: #95a5a6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+                 "Malgun Gothic", system-ui, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .meta { font-size: 12px; color: var(--muted); }
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* 모드 토글 */
+  .mode-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; width: fit-content; margin-bottom: 24px; }
+  .mode-toggle button {
+    background: transparent; border: 0; color: var(--muted);
+    padding: 10px 20px; cursor: pointer; font-size: 14px;
+  }
+  .mode-toggle button.active { background: var(--accent); color: #fff; }
+
+  /* 입력 영역 */
+  .input-panel { background: var(--panel); border: 1px solid var(--border);
+                 border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+  .file-drop { border: 2px dashed var(--border); border-radius: 6px;
+               padding: 40px 24px; text-align: center; cursor: pointer; transition: border-color .15s; }
+  .file-drop:hover, .file-drop.over { border-color: var(--accent); }
+  .file-drop input { display: none; }
+  .file-drop p { color: var(--muted); margin-top: 8px; font-size: 13px; }
+
+  /* 단건 폼 */
+  .single-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .single-form label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .single-form input, .single-form select {
+    width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text); font-size: 14px; font-family: inherit;
+  }
+  .single-form .row-button { grid-column: span 4; text-align: right; margin-top: 8px; }
+  .btn { background: var(--accent); color: #fff; border: 0; padding: 10px 20px;
+         border-radius: 4px; cursor: pointer; font-size: 14px; }
+  .btn:hover { opacity: .9; }
+  .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+
+  /* 탭 */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .tabs button { background: transparent; border: 0; padding: 10px 16px;
+                 color: var(--muted); cursor: pointer; font-size: 14px;
+                 border-bottom: 2px solid transparent; }
+  .tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  /* 카드 그리드 */
+  .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .card h3 { font-size: 14px; font-weight: 600; }
+  .card .sub { font-size: 12px; color: var(--muted); }
+  .card .grade-badge { display: inline-block; padding: 2px 8px; border-radius: 4px;
+                       font-size: 11px; font-weight: 600; color: #fff; }
+  .grade-badge.g-80 { background: var(--grade-80); }
+  .grade-badge.g-70 { background: var(--grade-70); }
+  .grade-badge.g-60 { background: var(--grade-60); }
+  .grade-badge.g-50 { background: var(--grade-50); }
+  .grade-badge.g-0  { background: var(--grade-0); }
+
+  .card .scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; font-size: 12px;
+                  background: var(--bg); padding: 8px; border-radius: 4px; }
+  .card .scores div { color: var(--muted); }
+  .card .scores div b { color: var(--text); }
+
+  .card .price-block { font-size: 12px; }
+  .card .price-block div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .card .price-block b { color: var(--text); }
+
+  .card .deadline { font-size: 12px; padding: 4px 8px; background: var(--bg); border-radius: 4px;
+                    display: inline-block; }
+
+  .card .actions { display: flex; gap: 6px; margin-top: auto; }
+  .btn-buy     { flex: 1; background: var(--buy); color: #fff; border: 0; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-counter { flex: 1; background: var(--counter); color: #fff; border: 0; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-pass    { flex: 1; background: var(--pass); color: #fff; border: 0; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-buy.decided     { box-shadow: 0 0 0 2px var(--buy); }
+  .btn-counter.decided { box-shadow: 0 0 0 2px var(--counter); }
+  .btn-pass.decided    { box-shadow: 0 0 0 2px var(--pass); }
+
+  /* TOP 20 테이블 */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td b { color: var(--accent); }
+
+  .empty-state { padding: 40px; text-align: center; color: var(--muted); }
+  #status-bar { padding: 8px 16px; background: var(--panel); border-radius: 4px; margin-bottom: 16px;
+                font-size: 13px; color: var(--muted); display: none; }
+  #status-bar.show { display: block; }
+</style>
+</head>
+<body>
+<header>
+  <h1>스마트 매입 <span style="color:var(--muted);font-weight:400;font-size:14px;">NC PICKS v13-Lite v1.4</span></h1>
+  <div class="meta">on-demand · 9개 진단 · TOP 20 매입 추천</div>
+</header>
+<main>
+  <div class="mode-toggle" data-testid="mode-toggle">
+    <button id="btn-mode-bulk"   class="active" data-mode="bulk">Excel 일괄</button>
+    <button id="btn-mode-single"             data-mode="single">단건 입력</button>
+  </div>
+
+  <!-- 일괄 입력 -->
+  <section id="panel-bulk" class="input-panel">
+    <div class="file-drop" id="file-drop" data-testid="file-drop">
+      <input type="file" id="file-input" accept=".xlsx,.xls" />
+      <strong>📁 Excel 드래그·드롭 또는 클릭</strong>
+      <p>BRAND/STYLE/COLOR/SIZE/CATEGORY/GENDER/PRODUCT_TYPE/FOB/JSC/RRP/QTY/SEASON/CHANNEL/ARRIVAL 컬럼 자동 탐지</p>
+    </div>
+  </section>
+
+  <!-- 단건 입력 -->
+  <section id="panel-single" class="input-panel" style="display:none;">
+    <form class="single-form" id="single-form">
+      <div><label>브랜드</label><input name="brand" value="ADIDAS" /></div>
+      <div><label>스타일</label><input name="style" value="SAMBA OG" /></div>
+      <div><label>컬러</label><input name="color" value="CORE BLACK" /></div>
+      <div><label>사이즈</label><input name="size" value="42" /></div>
+      <div><label>카테고리</label>
+        <select name="category">
+          <option>FOOTWEAR</option><option>APPAREL</option>
+          <option>ACCESSORY</option><option>OTHER</option>
+        </select>
+      </div>
+      <div><label>성별</label>
+        <select name="gender">
+          <option>MEN</option><option>WOMEN</option>
+          <option>UNISEX</option><option>KIDS</option>
+        </select>
+      </div>
+      <div><label>아이템(product)</label><input name="product" value="SNEAKERS" /></div>
+      <div><label>스포츠(ADIDAS만)</label><input name="sports" value="ORIGINALS" /></div>
+      <div><label>JSC EUR</label><input name="jsc" type="number" step="0.01" value="60" /></div>
+      <div><label>RRP EUR</label><input name="rrp" type="number" step="0.01" value="120" /></div>
+      <div><label>수량</label><input name="qty" type="number" value="100" /></div>
+      <div><label>시즌</label><input name="season" value="SS26" /></div>
+      <div class="row-button">
+        <button type="submit" class="btn">진단 실행</button>
+      </div>
+    </form>
+  </section>
+
+  <div id="status-bar"></div>
+
+  <!-- 결과 영역 -->
+  <section id="results-section" style="display:none;">
+    <div class="tabs">
+      <button id="tab-top20" class="active" data-tab="top20">TOP 20 매입 추천</button>
+      <button id="tab-all"               data-tab="all">전체 SKU</button>
+    </div>
+    <div id="tab-content-top20"></div>
+    <div id="tab-content-all" style="display:none;"></div>
+  </section>
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
