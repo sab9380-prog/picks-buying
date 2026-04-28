@@ -133,18 +133,31 @@ export function renderDashboard(container, diagnoses, offers = null) {
     </div>
   `;
 
-  // KPI
+  // KPI — Phase 3: hero 2 (종합 등급 + 가중평균 매입율) + compact 6
   const kpi = container.querySelector('[data-testid="kpi-grid"]');
+  const heroGrade = `
+    <div class="kpi kpi-hero">
+      <div class="kpi-label">종합 등급</div>
+      <div class="kpi-value-hero">
+        <span class="overall-grade-badge g-${a.overallGrade.cls}">${a.overallGrade.label}</span>
+      </div>
+      <div class="kpi-sub">${fmtScore(a.weightedScore)}점 · 가중평균</div>
+    </div>`;
+  const heroBuyRate = `
+    <div class="kpi kpi-hero">
+      <div class="kpi-label">가중평균 매입율</div>
+      <div class="kpi-value-hero">${fmtPct(a.weightedBuyRate)}</div>
+      <div class="kpi-sub">단순 ${fmtPct(a.simpleBuyRate)}</div>
+    </div>`;
   kpi.innerHTML = [
+    heroGrade,
+    heroBuyRate,
     kpiCard('총 SKU',          fmtNum(a.totalSkus)),
     kpiCard('총 수량',         fmtNum(a.totalQty)),
-    kpiCard('가중평균 매입율', fmtPct(a.weightedBuyRate),  `단순 ${fmtPct(a.simpleBuyRate)}`),
     kpiCard('가중평균 점수',   fmtScore(a.weightedScore), `단순 ${fmtScore(a.simpleScore)}`),
-    `<div class="kpi"><div class="kpi-label">종합 등급</div>
-      <div class="kpi-badge"><span class="overall-grade-badge g-${a.overallGrade.cls}">${a.overallGrade.label}</span></div></div>`,
     kpiCard('위험 SKU',        fmtNum(a.riskCount), `${(a.totalSkus ? a.riskCount/a.totalSkus*100 : 0).toFixed(1)}%`),
     kpiCard('가격모순',        fmtNum(a.pricingMismatchCount), `심리가 < 목표가`),
-    kpiCard('중심가 매칭률',   fmtPct(matchPct), `${matchedSkus}/${a.totalSkus} (db만)`)
+    kpiCard('중심가 매칭률',   fmtPct(matchPct), `${matchedSkus}/${a.totalSkus} (db만 매칭)`)
   ].join('');
 
   // 등급 분포

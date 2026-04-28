@@ -189,31 +189,154 @@
   .tab-content { min-height: 200px; }
   .tab-content[hidden] { display: none !important; }
 
-  /* 등급 배지 (전역) */
-  .grade-badge { display: inline-block; padding: 2px 8px; border-radius: 4px;
-                 font-size: 11px; font-weight: 600; color: #fff; }
-  .grade-badge.g-80, .overall-grade-badge.g-80 { background: var(--grade-80); }
-  .grade-badge.g-70, .overall-grade-badge.g-70 { background: var(--grade-70); }
-  .grade-badge.g-60, .overall-grade-badge.g-60 { background: var(--grade-60); }
-  .grade-badge.g-50, .overall-grade-badge.g-50 { background: var(--grade-50); }
-  .grade-badge.g-0,  .overall-grade-badge.g-0  { background: var(--grade-0); }
-  .overall-grade-badge { display: inline-block; padding: 4px 12px; border-radius: 6px;
-                         font-size: 13px; font-weight: 700; color: #fff; }
+  /* === Grade badges (global) === */
+  .grade-badge {
+    display: inline-flex; align-items: center; gap: var(--space-1);
+    padding: 2px var(--space-2);
+    border-radius: var(--r-sm);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid transparent;
+  }
+  .grade-badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: var(--r-pill);
+    display: inline-block; flex-shrink: 0;
+  }
+  .grade-badge.g-80 { color: var(--signal-success); border-color: var(--signal-success); background: rgba(39,174,96,0.10); }
+  .grade-badge.g-80::before { background: var(--signal-success); }
+  .grade-badge.g-70 { color: var(--signal-success); border-color: var(--signal-success); background: rgba(39,174,96,0.08); }
+  .grade-badge.g-70::before { background: var(--signal-success); }
+  .grade-badge.g-60 { color: var(--signal-warning); border-color: var(--signal-warning); background: rgba(242,201,76,0.10); }
+  .grade-badge.g-60::before { background: var(--signal-warning); }
+  .grade-badge.g-50 { color: var(--signal-warning); border-color: var(--signal-warning); background: rgba(242,201,76,0.08); }
+  .grade-badge.g-50::before { background: var(--signal-warning); }
+  .grade-badge.g-0  { color: var(--text-tertiary); border-color: var(--border-default); }
+  .grade-badge.g-0::before  { background: var(--text-tertiary); }
+  .overall-grade-badge {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--r-md);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.01em;
+  }
+  .overall-grade-badge.g-80 { color: var(--signal-success); background: rgba(39,174,96,0.14); border: 1px solid var(--signal-success); }
+  .overall-grade-badge.g-70 { color: var(--signal-success); background: rgba(39,174,96,0.10); border: 1px solid var(--signal-success); }
+  .overall-grade-badge.g-60 { color: var(--signal-warning); background: rgba(242,201,76,0.14); border: 1px solid var(--signal-warning); }
+  .overall-grade-badge.g-50 { color: var(--signal-warning); background: rgba(242,201,76,0.10); border: 1px solid var(--signal-warning); }
+  .overall-grade-badge.g-0  { color: var(--text-tertiary); background: var(--bg-card); border: 1px solid var(--border-default); }
 
-  /* === 대시보드 === */
-  .dash { display: flex; flex-direction: column; gap: 18px; }
-  .dash-section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-  .dash-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-  .dash-section h4 { font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
-  .dash-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  /* === Dashboard === */
+  .dash {
+    display: flex; flex-direction: column; gap: var(--space-5);
+  }
+  .dash-section {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    padding: var(--space-5);
+  }
+  .dash-section h3 {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+  .dash-section h4 {
+    font-size: var(--fs-xs);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+    font-weight: var(--fw-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .dash-section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: var(--space-4);
+  }
   .dash-section-head h3 { margin-bottom: 0; }
 
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .kpi { background: var(--panel-2); border-radius: 6px; padding: 12px; }
-  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-  .kpi-value { font-size: 20px; font-weight: 700; }
-  .kpi-sub   { font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .kpi-badge { padding-top: 4px; }
+  /* === KPI grid (Phase 3 — hero + compact) === */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .kpi {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+    padding: var(--space-3) var(--space-4);
+    display: flex; flex-direction: column;
+    gap: var(--space-1);
+    grid-column: span 1;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .kpi:hover { border-color: var(--border-default); }
+  .kpi-label {
+    font-size: var(--fs-xs);
+    color: var(--text-secondary);
+    font-weight: var(--fw-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .kpi-value {
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .kpi-sub {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+  }
+  .kpi-badge { padding-top: var(--space-1); }
+
+  /* Hero KPI — 종합 등급 + 가중평균 매입율 */
+  .kpi.kpi-hero {
+    grid-column: span 3;
+    padding: var(--space-5) var(--space-6);
+    gap: var(--space-2);
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi.kpi-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at top right, var(--accent-subtle), transparent 60%);
+    pointer-events: none;
+  }
+  .kpi.kpi-hero > * { position: relative; }
+  .kpi-hero .kpi-label {
+    font-size: var(--fs-sm);
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+  .kpi-hero .kpi-value-hero {
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: 1.0;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    margin-top: var(--space-1);
+  }
+  .kpi-hero .kpi-value-hero .overall-grade-badge {
+    font-size: var(--fs-2xl);
+    padding: var(--space-2) var(--space-4);
+  }
+  .kpi-hero .kpi-sub {
+    font-size: var(--fs-sm);
+    color: var(--text-tertiary);
+  }
 
   .dash-chart { padding: 4px; }
   .dash-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
