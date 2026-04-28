@@ -1,0 +1,168 @@
+/* ============================================================
+ * smart-buy v13-Lite — Design Tokens (Round 3-B Phase 1)
+ * Source of truth for all visual tokens.
+ * No inline color / no inline font-size in any other file.
+ * ============================================================ */
+
+:root {
+  /* ---------- Background ---------- */
+  --bg-base:     #0F0F10;
+  --bg-elevated: #17171A;
+  --bg-card:     #1B1B1F;
+  --bg-overlay:  rgba(0, 0, 0, 0.6);
+
+  /* ---------- Border ---------- */
+  --border-subtle:  #232328;
+  --border-default: #2E2E33;
+  --border-strong:  #3A3A40;
+
+  /* ---------- Text ---------- */
+  --text-primary:   rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-tertiary:  rgba(255, 255, 255, 0.45);
+  --text-disabled:  rgba(255, 255, 255, 0.25);
+
+  /* ---------- Accent (Linear violet) ---------- */
+  --accent-primary: #5E6AD2;
+  --accent-hover:   #6E7AE0;
+  --accent-subtle:  rgba(94, 106, 210, 0.15);
+
+  /* ---------- Signal ---------- */
+  --signal-danger:  #EB5757;
+  --signal-warning: #F2C94C;
+  --signal-success: #27AE60;
+  --signal-info:    #56CCF2;
+
+  /* ---------- Chart palette (Phase 6 will consume) ---------- */
+  --chart-color-1: #5E6AD2;  /* violet — accent */
+  --chart-color-2: #27AE60;  /* green */
+  --chart-color-3: #F2C94C;  /* amber */
+  --chart-color-4: #56CCF2;  /* info blue */
+  --chart-color-5: #BB6BD9;  /* magenta */
+  --chart-color-6: #F2994A;  /* orange */
+  --chart-color-7: #6FCF97;  /* mint */
+  --chart-color-8: #EB5757;  /* red — danger */
+
+  /* ---------- Font family ---------- */
+  --font-sans:  "Pretendard Variable", Pretendard, -apple-system,
+                BlinkMacSystemFont, "Apple SD Gothic Neo",
+                "Malgun Gothic", system-ui, sans-serif;
+  --font-en:    "Inter", "Inter Display", -apple-system,
+                BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono:  ui-monospace, SFMono-Regular, Menlo, Monaco,
+                "Cascadia Mono", Consolas, monospace;
+
+  /* ---------- Font size ---------- */
+  --fs-xs:   11px;
+  --fs-sm:   13px;
+  --fs-base: 14px;
+  --fs-md:   16px;   /* 본문 상향 기본 */
+  --fs-lg:   16px;
+  --fs-xl:   20px;
+  --fs-2xl:  28px;
+  --fs-3xl:  40px;
+
+  /* ---------- Font weight ---------- */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* ---------- Line height ---------- */
+  --lh-ko: 1.6;   /* 한국어 */
+  --lh-en: 1.5;   /* 영문 */
+
+  /* ---------- Radius ---------- */
+  --r-sm:  4px;
+  --r-md:  6px;
+  --r-lg:  8px;
+  --r-xl:  12px;
+  --r-2xl: 16px;
+  --r-pill: 999px;
+
+  /* ---------- Spacing (8px grid) ---------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  32px;
+  --space-8:  40px;
+  --space-9:  48px;
+  --space-10: 56px;
+  --space-11: 64px;
+  --space-12: 80px;
+
+  /* ---------- Shadow (subtle on dark) ---------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+  /* ---------- Motion ---------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast:   120ms;
+  --dur-medium: 200ms;
+  --dur-slow:   320ms;
+
+  /* ============================================================
+   * Backward-compat aliases — Phase 1 keeps existing var names
+   * working so dashboard.js / sku-table.js don't break.
+   * Phase 4~6 will replace usages with the new tokens directly.
+   * ============================================================ */
+  --bg:       var(--bg-base);
+  --panel:    var(--bg-elevated);
+  --panel-2:  var(--bg-card);
+  --border:   var(--border-subtle);
+  --text:     var(--text-primary);
+  --muted:    var(--text-secondary);
+  --accent:   var(--accent-primary);
+  --buy:      var(--signal-success);
+  --counter:  var(--signal-warning);
+  --pass:     var(--text-tertiary);
+  --warn:     var(--signal-danger);
+  --grade-80: var(--signal-success);
+  --grade-70: var(--signal-success);
+  --grade-60: var(--signal-warning);
+  --grade-50: var(--signal-warning);
+  --grade-0:  var(--text-tertiary);
+}
+
+/* ============================================================
+ * Base typography
+ * ============================================================ */
+html {
+  font-size: var(--fs-md);   /* 16px base */
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ko);
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss11", "kern", "liga";
+}
+
+/* Korean pages → Pretendard */
+:lang(ko) {
+  font-family: var(--font-sans);
+  line-height: var(--lh-ko);
+}
+
+/* Non-Korean → Inter */
+:not(:lang(ko)) {
+  font-family: var(--font-en);
+  line-height: var(--lh-en);
+}
+
+/* Numeric tabular alignment for tables / KPIs */
+.num,
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
