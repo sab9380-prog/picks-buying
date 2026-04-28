@@ -17,46 +17,175 @@
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* === Top header (Linear workspace pattern) === */
   header {
-    padding: 16px 24px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: var(--space-3) var(--space-6);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-4);
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(8px);
   }
-  header h1 { font-size: 18px; font-weight: 600; }
-  header .meta { font-size: 12px; color: var(--muted); }
-  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  header .brand {
+    display: flex; align-items: center; gap: var(--space-3);
+  }
+  header .brand-mark {
+    width: 24px; height: 24px; border-radius: var(--r-md);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: var(--fs-sm); font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+  }
+  header h1 {
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    display: inline-flex; align-items: baseline; gap: var(--space-2);
+  }
+  header h1 .version-tag {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-regular);
+    color: var(--text-tertiary);
+    padding: 2px var(--space-2);
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+  }
+  header .meta {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+  }
 
-  /* 모드 토글 */
-  .mode-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; width: fit-content; margin-bottom: 24px; }
-  .mode-toggle button { background: transparent; border: 0; color: var(--muted); padding: 10px 20px; cursor: pointer; font-size: 14px; }
-  .mode-toggle button.active { background: var(--accent); color: #fff; }
+  /* === Main container === */
+  main {
+    padding: var(--space-6) var(--space-7);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
 
-  /* 입력 영역 */
-  .input-panel { background: var(--panel); border: 1px solid var(--border);
-                 border-radius: 8px; padding: 24px; margin-bottom: 24px; }
-  .file-drop { border: 2px dashed var(--border); border-radius: 6px;
-               padding: 40px 24px; text-align: center; cursor: pointer; transition: border-color .15s; }
-  .file-drop:hover, .file-drop.over { border-color: var(--accent); }
+  /* === Mode toggle (segmented control) === */
+  .mode-toggle {
+    display: inline-flex; gap: 2px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-md);
+    background: var(--bg-card);
+    padding: 2px;
+    width: fit-content;
+    margin-bottom: var(--space-6);
+  }
+  .mode-toggle button {
+    background: transparent; border: 0;
+    color: var(--text-secondary);
+    padding: var(--space-2) var(--space-4);
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    border-radius: var(--r-sm);
+    transition: color var(--dur-fast) var(--ease-standard),
+                background var(--dur-fast) var(--ease-standard);
+  }
+  .mode-toggle button:hover {
+    color: var(--text-primary);
+  }
+  .mode-toggle button.active {
+    background: var(--accent-primary);
+    color: #fff;
+    font-weight: var(--fw-semibold);
+  }
+
+  /* === Input panel === */
+  .input-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  .file-drop {
+    border: 2px dashed var(--border-default);
+    border-radius: var(--r-md);
+    padding: var(--space-8) var(--space-6);
+    text-align: center; cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-standard),
+                background var(--dur-fast) var(--ease-standard);
+  }
+  .file-drop:hover, .file-drop.over {
+    border-color: var(--accent-primary);
+    background: var(--accent-subtle);
+  }
   .file-drop input { display: none; }
-  .file-drop p { color: var(--muted); margin-top: 8px; font-size: 13px; }
-
-  /* 단건 폼 */
-  .single-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .single-form label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-  .single-form input, .single-form select {
-    width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 4px; color: var(--text); font-size: 14px; font-family: inherit;
+  .file-drop p {
+    color: var(--text-secondary);
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
   }
-  .single-form .row-button { grid-column: span 4; text-align: right; margin-top: 8px; }
-  .btn { background: var(--accent); color: #fff; border: 0; padding: 10px 20px;
-         border-radius: 4px; cursor: pointer; font-size: 14px; }
-  .btn:hover { opacity: .9; }
 
-  /* 탭 */
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-  .tabs button { background: transparent; border: 0; padding: 10px 16px;
-                 color: var(--muted); cursor: pointer; font-size: 14px;
-                 border-bottom: 2px solid transparent; }
-  .tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+  /* === Single form === */
+  .single-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+  .single-form label {
+    font-size: var(--fs-xs);
+    color: var(--text-secondary);
+    display: block; margin-bottom: var(--space-1);
+    font-weight: var(--fw-medium);
+  }
+  .single-form input, .single-form select {
+    width: 100%; padding: var(--space-2) var(--space-3);
+    background: var(--bg-base);
+    border: 1px solid var(--border-default);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
+    font-size: var(--fs-sm);
+    font-family: inherit;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .single-form input:focus, .single-form select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+  .single-form .row-button { grid-column: span 4; text-align: right; margin-top: var(--space-2); }
+  .btn {
+    background: var(--accent-primary);
+    color: #fff;
+    border: 0;
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  .btn:hover { background: var(--accent-hover); }
+
+  /* === Tabs (Linear active pattern) === */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: var(--space-5);
+  }
+  .tabs button {
+    background: transparent; border: 0;
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color var(--dur-fast) var(--ease-standard),
+                border-color var(--dur-fast) var(--ease-standard);
+  }
+  .tabs button:hover {
+    color: var(--text-primary);
+  }
+  .tabs button.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-primary);
+    font-weight: var(--fw-semibold);
+  }
   .tab-content { min-height: 200px; }
   .tab-content[hidden] { display: none !important; }
 
@@ -150,15 +279,31 @@
   .btn-pass.decided    { box-shadow: 0 0 0 2px var(--pass);    }
   .detail-panel .actions button { padding: 8px 12px; font-size: 13px; flex: 1; }
 
-  .empty-state { padding: 40px; text-align: center; color: var(--muted); }
-  #status-bar { padding: 8px 16px; background: var(--panel); border-radius: 4px; margin-bottom: 16px;
-                font-size: 13px; color: var(--muted); display: none; }
+  .empty-state {
+    padding: var(--space-8);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--fs-sm);
+  }
+  #status-bar {
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+    display: none;
+  }
   #status-bar.show { display: block; }
 </style>
 </head>
 <body>
 <header>
-  <h1>스마트 매입 <span style="color:var(--muted);font-weight:400;font-size:14px;">NC PICKS v13-Lite v1.4 — Round 2</span></h1>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">S</span>
+    <h1>스마트 매입<span class="version-tag">v13-Lite · Round 3-B</span></h1>
+  </div>
   <div class="meta">on-demand · 9개 진단 · 대시보드 + TOP 20 + 전체 SKU 표</div>
 </header>
 <main>
