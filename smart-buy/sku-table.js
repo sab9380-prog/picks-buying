@@ -34,7 +34,7 @@ const COLS = [
   { key: 'psychPrice',  label: '고객심리가', num: true,
                         fmt: (v, d) => {
                           const p = d.pricing?.customerPsychPriceKrw;
-                          if (!p) return '<span style="color:var(--muted)">-</span>';
+                          if (!p) return '<span class="cell-empty">-</span>';
                           const tag = d.pricing.psychPriceSource === 'rrp_synth' ? ' <span class="src-tag">추정</span>' : '';
                           return p.toLocaleString() + tag;
                         },
@@ -191,9 +191,16 @@ function renderDetail(container, d, lastBySku, decisions, onDecision, onClose) {
   const p = d.pricing || {};
   const h = d.heuristic || {};
   const ratioPct = p.psychRatio ? (p.psychRatio * 100).toFixed(1) + '%' : '-';
-  const psychSrc = p.psychPriceSource === 'db' ? 'DB'
-                 : p.psychPriceSource === 'rrp_synth' ? 'RRP 추정'
-                 : '없음';
+  const ratioCls = p.psychRatio > 1 ? ' psych-ratio-danger' : '';
+  // psychPriceSource: 'db' (DB 직접 매칭), 'rrp_synth' (RRP×factor 추정 — 라운드 4 보정 예정), undefined (없음)
+  const psychSrcKey = p.psychPriceSource || 'none';
+  const psychSrcLabel = psychSrcKey === 'db' ? 'DB 매칭'
+                      : psychSrcKey === 'rrp_synth' ? '추정값'
+                      : '없음';
+  const psychSrcBadge = `<span class="psych-source-badge ${psychSrcKey === 'rrp_synth' ? 'synth' : psychSrcKey}">${psychSrcLabel}</span>`;
+  const psychSrcNote = psychSrcKey === 'rrp_synth'
+    ? `<span class="psych-source-note">추정값 — 라운드 4 보정 예정 (RRP × 0.55 계수)</span>`
+    : '';
   const skuHistory = decisions.filter(x => x.skuId === d.skuId)
     .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt));
   const last = lastBySku.get(d.skuId);
@@ -210,7 +217,7 @@ function renderDetail(container, d, lastBySku, decisions, onDecision, onClose) {
   if (items.decisionDeadline) {
     itemBlocks.push(`<div>결정시한: ${items.decisionDeadline.tier} ${items.decisionDeadline.weeks}주</div>`);
   }
-  if (!itemBlocks.length) itemBlocks.push('<div style="color:var(--muted)">9개 진단 항목 데이터 없음 (4-tuple 매칭 부재)</div>');
+  if (!itemBlocks.length) itemBlocks.push('<div class="data-empty">9개 진단 항목 데이터 없음 (4-tuple 매칭 부재)</div>');
 
   container.innerHTML = `
     <header>
@@ -218,7 +225,7 @@ function renderDetail(container, d, lastBySku, decisions, onDecision, onClose) {
         <h3>${esc(o.brand)} ${esc(o.style)}</h3>
         <div class="meta">${esc(o.color)} · ${esc(o.size)} · ${esc(o.category)}/${esc(o.gender)} · ${esc(o.season)}</div>
       </div>
-      <button class="close-btn" data-testid="detail-close">×</button>
+      <button class="close-btn" data-testid="detail-close" aria-label="닫기">×</button>
     </header>
 
     <div class="section">
@@ -227,7 +234,7 @@ function renderDetail(container, d, lastBySku, decisions, onDecision, onClose) {
         <span>채널</span><b>${esc(o.channel) || '-'}</b>
         <span>도착월</span><b>${esc(o.arrivalMonth) || '-'}</b>
         <span>수량</span><b>${o.qty || 0}</b>
-        <span>SKU ID</span><b style="font-size:10px">${esc(d.skuId)}</b>
+        <span>SKU ID</span><b class="meta-mono">${esc(d.skuId)}</b>
       </div>
     </div>
 
@@ -240,10 +247,11 @@ function renderDetail(container, d, lastBySku, decisions, onDecision, onClose) {
         <span>RRP KRW</span><b>${(p.rrpKrw || 0).toLocaleString()}</b>
         <span>랜디드</span><b>${(p.landedCostKrw || 0).toLocaleString()}</b>
         <span>목표가</span><b>${(p.targetPriceKrw || 0).toLocaleString()}</b>
-        <span>고객심리가</span><b>${(p.customerPsychPriceKrw || 0).toLocaleString()} (${psychSrc})</b>
-        <span>심리가대비</span><b style="${p.psychRatio > 1 ? 'color:var(--warn)' : ''}">${ratioPct}</b>
+        <span>고객심리가</span><b>${(p.customerPsychPriceKrw || 0).toLocaleString()}${psychSrcBadge}</b>
+        <span>심리가대비</span><b class="${ratioCls.trim()}">${ratioPct}</b>
       </div>
-      ${p.note ? `<div class="meta" style="margin-top:6px">${esc(p.note)}</div>` : ''}
+      ${psychSrcNote}
+      ${p.note ? `<div class="section-note">${esc(p.note)}</div>` : ''}
     </div>
 
     <div class="section">
@@ -256,12 +264,12 @@ function renderDetail(container, d, lastBySku, decisions, onDecision, onClose) {
         <span>시즌</span><b>${h.season || 0}</b>
         <span>키워드</span><b>${(h.keywordBonus || 0) >= 0 ? '+' : ''}${h.keywordBonus || 0}</b>
       </div>
-      ${h.keywordMatched?.length ? `<div class="meta" style="margin-top:6px">키워드: ${h.keywordMatched.map(esc).join(', ')}</div>` : ''}
+      ${h.keywordMatched?.length ? `<div class="section-note">키워드: ${h.keywordMatched.map(esc).join(', ')}</div>` : ''}
     </div>
 
     <div class="section">
       <h4>9개 진단 항목</h4>
-      <div style="font-size:12px">${itemBlocks.join('')}</div>
+      <div class="diagnosis-items">${itemBlocks.join('')}</div>
       ${items.riskSignals?.length
         ? `<div class="risk">⚠ ${items.riskSignals.map(esc).join(', ')}</div>`
         : ''}
