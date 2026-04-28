@@ -11,6 +11,7 @@ import {
 import { diagnose } from './engine/diagnose.js';
 import { rankTop20, rankAll } from './engine/rank.js';
 import { renderDashboard } from './dashboard.js';
+import { renderSkuTable } from './sku-table.js';
 
 // ── 상태 ────────────────────────────────────────────────────────────
 let db = null;
@@ -216,90 +217,40 @@ async function processOffers(offers) {
 
 function renderAllTabs(diagnoses) {
   renderDashboard($('#tab-content-dashboard'), diagnoses);
-  renderTopAndAllTables(diagnoses);
-}
 
-// Phase 3 임시 표 (Phase 4에서 sku-table.js로 분리·확장).
-function renderTopAndAllTables(diagnoses) {
   const top = rankTop20(diagnoses);
-  renderSimpleTable($('#tab-content-top20'), top,  'top20-table',  true);
+  renderSkuTable($('#tab-content-top20'), top, {
+    testId: 'top20-table',
+    decisions: currentDecisions,
+    onDecision: handleDecision,
+    defaultSortKey: 'score',
+    defaultSortDir: 'desc'
+  });
+
   const all = rankAll(diagnoses);
-  renderSimpleTable($('#tab-content-all'),   all,  'all-sku-table', false);
+  renderSkuTable($('#tab-content-all'), all, {
+    testId: 'all-sku-table',
+    decisions: currentDecisions,
+    onDecision: handleDecision,
+    defaultSortKey: '_idx',
+    defaultSortDir: 'asc'
+  });
 }
 
-function renderSimpleTable(container, list, testId, showRank) {
-  if (!list.length) {
-    container.innerHTML = '<div class="empty-state">데이터 없음</div>';
-    return;
-  }
-  const rows = list.map((d, i) => {
-    const o = d.offer || {};
-    return `
-      <tr data-skuid="${esc(d.skuId)}">
-        <td class="num">${i + 1}</td>
-        <td>${esc(o.brand || '')}</td>
-        <td>${esc(o.style || '')}</td>
-        <td>${esc(o.color || '')}</td>
-        <td>${esc(o.size || '')}</td>
-        <td>${esc(o.category || '')}</td>
-        <td>${esc(o.gender || '')}</td>
-        <td>${esc(o.season || '')}</td>
-        <td class="num">${o.qty || 0}</td>
-        <td class="num">${(o.jsc || 0).toFixed(2)}</td>
-        <td class="num">${(o.rrp || 0).toFixed(2)}</td>
-        <td><span class="grade-badge g-${d.heuristic.cls}">${esc(d.heuristic.label)}</span></td>
-        <td class="num">${d.heuristic.total}</td>
-        <td class="actions-cell"></td>
-      </tr>`;
-  }).join('');
-  container.innerHTML = `
-    <div class="table-wrap">
-      <table class="sku" data-testid="${testId}">
-        <thead><tr>
-          <th>#</th><th>브랜드</th><th>모델</th><th>컬러</th><th>사이즈</th>
-          <th>카테고리</th><th>성별</th><th>시즌</th><th>수량</th>
-          <th>JSC EUR</th><th>RRP EUR</th><th>등급</th><th>점수</th><th>결정</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-  // 결정 버튼 — XSS 방지를 위해 동적 삽입
-  for (const d of list) {
-    const cell = container.querySelector(`tr[data-skuid="${cssEsc(d.skuId)}"] td.actions-cell`);
-    if (cell) cell.appendChild(buildDecisionButtons(d));
-  }
-}
-
-function cssEsc(s) { return String(s).replace(/(["\\])/g, '\\$1'); }
-
-function buildDecisionButtons(d) {
-  const wrap = document.createElement('div');
-  wrap.className = 'actions';
-  for (const action of [DECISION.BUY, DECISION.COUNTER, DECISION.PASS]) {
-    const b = document.createElement('button');
-    b.className = `btn-${action.toLowerCase()}`;
-    b.textContent = action;
-    b.dataset.testid = `btn-${action.toLowerCase()}`;
-    b.dataset.skuid = d.skuId;
-    b.addEventListener('click', (e) => { e.stopPropagation(); recordDecision(d, action, b); });
-    wrap.appendChild(b);
-  }
-  return wrap;
-}
-
-async function recordDecision(diagnosis, decision, btn) {
+async function handleDecision({ diagnosis, decision, memo }) {
   const decisionObj = {
     decisionId: 'DEC-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
     skuId: diagnosis.skuId,
     batchId: diagnosis.batchId,
     decision,
+    memo: memo || '',
     diagnosisSnapshot: diagnosis,
     decidedAt: new Date().toISOString()
   };
   await putDecision(db, decisionObj);
   currentDecisions.push(decisionObj);
-  btn.classList.add('decided');
   status(`결정 저장: ${decision} → ${diagnosis.skuId}`);
+  return decisionObj;
 }
 
 // ── 시작 ───────────────────────────────────────────────────────────
