@@ -1,0 +1,215 @@
+/* ============================================================
+ * smart-buy v13-Lite — Design Tokens (Round 3-B-2 / Linear-measured)
+ * Source of truth for all visual tokens.
+ * No inline color / no inline font-size in any other file.
+ * Values measured directly from Linear captures (linear.app).
+ * ============================================================ */
+
+:root {
+  /* ---------- Background ----------
+   * Linear uses a near-black slightly warm dark. Surfaces sit barely
+   * above page bg — separation comes from color tone, not borders. */
+  --bg-base:     #0B0B0F;   /* page — slightly warmer than pure black */
+  --bg-elevated: #131318;   /* surface (sticky header, panels) */
+  --bg-card:     #17171D;   /* card / dropdown / row hover */
+  --bg-input:    #0F0F14;   /* sunken input fields */
+  --bg-overlay:  rgba(0, 0, 0, 0.72);
+
+  /* ---------- Border ----------
+   * Linear keeps borders almost invisible (0.05~0.10 alpha).
+   * Strong only used for focus rings and active emphasis. */
+  --border-subtle:  rgba(255, 255, 255, 0.055);
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-strong:  rgba(255, 255, 255, 0.16);
+
+  /* ---------- Text ----------
+   * Linear's "white" is slightly off — feels softer on dark. */
+  --text-primary:   #F4F4F7;
+  --text-secondary: #9CA0A8;
+  --text-tertiary:  #696B73;
+  --text-disabled:  #3F4046;
+
+  /* ---------- Accent (Linear violet — official brand color) ---------- */
+  --accent-primary: #5E6AD2;
+  --accent-hover:   #7078E0;
+  --accent-active:  #4D58BC;
+  --accent-subtle:  rgba(94, 106, 210, 0.14);
+  --accent-muted:   rgba(94, 106, 210, 0.08);
+
+  /* ---------- Signal ----------
+   * Slightly desaturated — Linear's red/yellow/green feel less "neon". */
+  --signal-danger:  #E5484D;
+  --signal-warning: #E2A132;
+  --signal-success: #46A758;
+  --signal-info:    #5B9DD9;
+  --signal-danger-soft:  rgba(229, 72, 77, 0.14);
+  --signal-warning-soft: rgba(226, 161, 50, 0.13);
+  --signal-success-soft: rgba(70, 167, 88, 0.13);
+
+  /* ---------- Chart palette (jewel tones, Linear-style) ----------
+   * Saturated but not neon — readable on near-black. */
+  --chart-color-1: #8E73E3;   /* violet */
+  --chart-color-2: #58B364;   /* green */
+  --chart-color-3: #D9A93A;   /* amber */
+  --chart-color-4: #5BA3DA;   /* sky */
+  --chart-color-5: #C66EAA;   /* magenta */
+  --chart-color-6: #E08951;   /* orange */
+  --chart-color-7: #4FC4A7;   /* teal */
+  --chart-color-8: #D55C5C;   /* red */
+  --chart-color-9: #B0BD3F;   /* lime */
+  --chart-color-10: #B17CE0;  /* lavender */
+
+  /* ---------- Font family ---------- */
+  --font-sans:    "Pretendard Variable", Pretendard, -apple-system,
+                  BlinkMacSystemFont, "Apple SD Gothic Neo",
+                  "Malgun Gothic", system-ui, sans-serif;
+  --font-display: "Inter", "Inter Display", "Pretendard Variable",
+                  -apple-system, system-ui, sans-serif;
+  --font-en:      "Inter", "Inter Display", -apple-system,
+                  BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco,
+                  "Cascadia Mono", Consolas, monospace;
+
+  /* ---------- Font size ----------
+   * Stronger hierarchy — Linear has dramatic gap between body & display.
+   * 2026-04 R3-C: 본문/라벨이 11~13px에 과집중되어 1280px+ 데스크톱에서
+   * 작게 느껴진다는 사용자 피드백 반영. xs/sm/base/md/lg를 한 단계씩 상향
+   * (DESIGN.md 4.2 권장 스케일과 정합). 디스플레이 라인(xl 이상)은 유지. */
+  --fs-xs:      12px;
+  --fs-sm:      14px;
+  --fs-base:    15px;
+  --fs-md:      16px;
+  --fs-lg:      18px;
+  --fs-xl:      20px;
+  --fs-2xl:     26px;
+  --fs-3xl:     34px;
+  --fs-display: 48px;        /* hero number */
+  --fs-display-lg: 64px;     /* huge display (single big metric) */
+
+  /* ---------- Font weight ----------
+   * Linear's hero numbers use REGULAR/MEDIUM, not bold. */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* ---------- Line height ---------- */
+  --lh-tight:   1.1;     /* hero numbers */
+  --lh-display: 1.05;    /* huge display headings */
+  --lh-snug:    1.3;     /* section headings */
+  --lh-normal:  1.5;     /* body english */
+  --lh-ko:      1.6;     /* body korean */
+
+  /* ---------- Letter spacing ---------- */
+  --ls-tighter: -0.03em;   /* hero numbers / display */
+  --ls-tight:   -0.012em;  /* headings */
+  --ls-normal:  0;
+  --ls-loose:   0.02em;    /* small caps style replaced — kept for compat */
+
+  /* ---------- Radius ---------- */
+  --r-sm:   4px;
+  --r-md:   6px;
+  --r-lg:   8px;
+  --r-xl:   12px;
+  --r-2xl:  16px;
+  --r-pill: 999px;
+
+  /* ---------- Spacing (8px grid + 4px refinements) ---------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  32px;
+  --space-8:  40px;
+  --space-9:  48px;
+  --space-10: 56px;
+  --space-11: 64px;
+  --space-12: 80px;
+
+  /* ---------- Shadow ----------
+   * On dark, shadow is mostly invisible — Linear uses border tint instead.
+   * Reserved for elevation modals / dropdowns only. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 6px 22px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow-accent: 0 0 0 3px var(--accent-subtle);
+
+  /* ---------- Motion ---------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decel:    cubic-bezier(0.05, 0.7, 0.1, 1);
+  --dur-fast:   120ms;
+  --dur-medium: 200ms;
+  --dur-slow:   320ms;
+
+  /* ============================================================
+   * Backward-compat aliases — keep until app.js / sku-table.js / dashboard.js
+   * are migrated to the new token names. DO NOT add new ones.
+   * ============================================================ */
+  --bg:       var(--bg-base);
+  --panel:    var(--bg-elevated);
+  --panel-2:  var(--bg-card);
+  --border:   var(--border-subtle);
+  --text:     var(--text-primary);
+  --muted:    var(--text-secondary);
+  --accent:   var(--accent-primary);
+  --buy:      var(--signal-success);
+  --counter:  var(--signal-warning);
+  --pass:     var(--text-tertiary);
+  --warn:     var(--signal-danger);
+  --grade-80: var(--signal-success);
+  --grade-70: var(--signal-success);
+  --grade-60: var(--signal-warning);
+  --grade-50: var(--signal-warning);
+  --grade-0:  var(--text-tertiary);
+}
+
+/* ============================================================
+ * Base typography
+ * ============================================================ */
+html {
+  font-size: var(--fs-md);
+  background: var(--bg-base);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ko);
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss11", "kern", "liga";
+}
+
+/* Korean pages → Pretendard */
+:lang(ko) {
+  font-family: var(--font-sans);
+  line-height: var(--lh-ko);
+}
+
+/* Non-Korean → Inter / Inter Display */
+:not(:lang(ko)) {
+  font-family: var(--font-en);
+  line-height: var(--lh-normal);
+}
+
+/* Display utility — hero numbers / quote-style headings */
+.display,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: var(--ls-tighter);
+  line-height: var(--lh-display);
+  font-feature-settings: "ss03", "cv11", "kern", "liga";
+}
+
+/* Numeric tabular alignment for tables / KPIs */
+.num,
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}

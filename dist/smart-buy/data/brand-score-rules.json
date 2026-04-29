@@ -1,0 +1,320 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1072-1153 (BRAND_TIER_DB) + 1182-1231 (sBrand body)",
+    "note": "Tier S=30, A=22~28, B=14~20, C=4~12. ADIDAS/NIKE/NEW BALANCE 모델 Tier 별도 적용"
+  },
+  "brand_tier_db": {
+    "BURBERRY": 30,
+    "MAXMARA": 30,
+    "MAX MARA": 30,
+    "THOM BROWNE": 30,
+    "TOMBROUN": 30,
+    "ACNE STUDIOS": 28,
+    "ACNESTUDIOS": 28,
+    "AMI": 28,
+    "AMI PARIS": 28,
+    "MAISON KITSUNE": 28,
+    "MAISONKITSUNE": 28,
+    "ME종키츠네": 28,
+    "NEW BALANCE": 28,
+    "NEWBALANCE": 28,
+    "뉴발란스": 28,
+    "POLO RALPH LAUREN": 28,
+    "POLO": 28,
+    "RALPH LAUREN": 28,
+    "폴로랄프로렌": 28,
+    "BIRKENSTOCK": 28,
+    "버켄스탁": 28,
+    "ZARA": 28,
+    "자라": 28,
+    "DISNEY": 24,
+    "DISNEY CHARACTER": 24,
+    "디즈니": 24,
+    "TOMMY HILFIGER": 26,
+    "TOMMYHILFIGER": 26,
+    "CALVIN KLEIN": 22,
+    "CALVINKLEIN": 22,
+    "캘빈클라인": 22,
+    "캘빈 클라인": 22,
+    "LEMAIRE": 24,
+    "르메르": 24,
+    "SANDRO": 24,
+    "산드로": 24,
+    "MAJE": 24,
+    "마쥬": 24,
+    "APC": 24,
+    "아페쎄": 24,
+    "A.P.C": 24,
+    "GANNI": 22,
+    "가니": 22,
+    "KENZO": 22,
+    "겐조": 22,
+    "ISABEL MARANT": 22,
+    "ISABELMARANT": 22,
+    "이자벨마랑": 22,
+    "SELF PORTRAIT": 22,
+    "SELFPORTRAIT": 22,
+    "셀프포트레이트": 22,
+    "CP COMPANY": 22,
+    "CPCOMPANY": 22,
+    "씨피컴퍼니": 22,
+    "CP컴퍼니": 22,
+    "CHAMPION": 22,
+    "챔피온": 22,
+    "CARHARTT": 22,
+    "칼하트": 22,
+    "PUMA": 20,
+    "푸마": 20,
+    "OAKLEY": 20,
+    "오클리": 20,
+    "MASSIMO DUTTI": 22,
+    "MASSIMODUTTI": 22,
+    "마시모두띠": 22,
+    "HAZZYS": 22,
+    "헤지스": 22,
+    "DAKS": 20,
+    "닥스": 20,
+    "MAESTRO": 20,
+    "마에스트로": 20,
+    "JILL STUART": 20,
+    "JILLSTUART": 20,
+    "질스튜어트": 20,
+    "PARTIMENTO": 22,
+    "파르티멘토": 22,
+    "VIVA STUDIO": 20,
+    "VIVASTUDIO": 20,
+    "비바스튜디오": 20,
+    "CARROTS": 20,
+    "캐롯츠": 20,
+    "LOUISE MISHA": 18,
+    "루이스미샤": 18,
+    "LACOSTE": 22,
+    "라코스테": 22,
+    "NIKE": 26,
+    "나이키": 26,
+    "ADIDAS": 24,
+    "아디다스": 24,
+    "ALLEGRI": 16,
+    "알레그리": 16,
+    "VANESSA BRUNO": 18,
+    "바네사브루노": 18,
+    "CLAUDIE PIERLOT": 16,
+    "끌로디피에로": 16,
+    "ASPESI": 16,
+    "아스페시": 16,
+    "COLMAR": 16,
+    "콜마르": 16,
+    "K-WAY": 16,
+    "KWAY": 16,
+    "케이웨이": 16,
+    "EDDIE BAUER": 16,
+    "EDDIEBAUER": 16,
+    "에디바우어": 16,
+    "HAVAIANAS": 16,
+    "하바이아나스": 16,
+    "FITFLOP": 14,
+    "핏플랍": 14,
+    "LAFUMA": 14,
+    "라푸마": 14,
+    "AGATHA": 14,
+    "아가타": 14,
+    "JILSTUART": 16,
+    "질바이질스튜어트": 16,
+    "ATCORNER": 16,
+    "ATCONRNER": 16,
+    "앳코너": 16,
+    "ILCORSO": 16,
+    "일꼬르소": 16,
+    "TNGT": 14,
+    "티엔지티": 14,
+    "CAMBRIDGE": 14,
+    "캠브리지": 14,
+    "BLUDOG": 16,
+    "블루독": 16,
+    "BLUE DOG": 16,
+    "BLUEDOG": 16,
+    "PHANCT": 14,
+    "팬콧": 14,
+    "HAPPYBUS": 14,
+    "해피버스": 14,
+    "헤피버스": 14,
+    "ATHE": 12,
+    "아떼": 12,
+    "OUTDOOR PRODUCTS": 12,
+    "OUTDOORPRODUCTS": 12,
+    "아웃도어 프로덕츠": 12,
+    "N.21": 14,
+    "NUMERO21": 14,
+    "넘버21": 14,
+    "REPOSE AMS": 14,
+    "리포즈암스": 14,
+    "WEEKEND HOUSE": 14,
+    "WEEKENDHOUSEKIDS": 14,
+    "위켄드하우스": 14,
+    "IL GUFO": 14,
+    "ILGUFO": 14,
+    "일구포": 14,
+    "PHYPS": 14,
+    "핍즈": 14,
+    "FATALISM": 14,
+    "페이탈리즘": 14,
+    "DOCKERS": 12,
+    "다커스": 12,
+    "USPA": 10,
+    "유에스폴로": 10,
+    "SPADECLUB": 10,
+    "스페이드클럽": 10,
+    "ARMORLUX": 8,
+    "아머럭스": 8,
+    "CNN": 8,
+    "씨엔엔": 8,
+    "MICHIGAN": 8,
+    "미시간": 8,
+    "KONZERT": 4,
+    "콘체르트": 4,
+    "SPATI": 4,
+    "슈페티": 4,
+    "GARMENTLABLE": 4,
+    "가먼트레이블": 4
+  },
+  "model_tier": {
+    "ADIDAS": [
+      {
+        "score": 30,
+        "models": [
+          "SAMBA",
+          "GAZELLE"
+        ]
+      },
+      {
+        "score": 26,
+        "models": [
+          "CAMPUS",
+          "HANDBALL",
+          "SPEZIAL"
+        ]
+      },
+      {
+        "score": 24,
+        "sports": [
+          "ORIGINALS"
+        ]
+      },
+      {
+        "score": 22,
+        "models": [
+          "SUPERSTAR",
+          "STAN SMITH"
+        ]
+      },
+      {
+        "score": 20,
+        "models": [
+          "ULTRABOOST",
+          "NMD"
+        ]
+      },
+      {
+        "score": 18,
+        "default": true
+      },
+      {
+        "score": 16,
+        "sports": [
+          "RUNNING"
+        ]
+      },
+      {
+        "score": 14,
+        "sports": [
+          "TRAINING"
+        ]
+      },
+      {
+        "score": 8,
+        "sports": [
+          "FOOTBALL",
+          "SOCCER"
+        ]
+      }
+    ],
+    "NIKE": [
+      {
+        "score": 28,
+        "models": [
+          "DUNK",
+          "AIR FORCE",
+          "AIR MAX 1"
+        ]
+      },
+      {
+        "score": 26,
+        "models": [
+          "AIR MAX 90",
+          "AIR MAX 95",
+          "BLAZER"
+        ]
+      },
+      {
+        "score": 24,
+        "models": [
+          "AIR MAX",
+          "JORDAN"
+        ]
+      },
+      {
+        "score": 20,
+        "default": true
+      },
+      {
+        "score": 18,
+        "models": [
+          "FREE",
+          "REACT",
+          "PEGASUS"
+        ]
+      }
+    ],
+    "NEW BALANCE": [
+      {
+        "score": 30,
+        "models": [
+          "990",
+          "530",
+          "574"
+        ]
+      },
+      {
+        "score": 28,
+        "models": [
+          "2002",
+          "550",
+          "1906"
+        ]
+      },
+      {
+        "score": 26,
+        "models": [
+          "996",
+          "327",
+          "9060"
+        ]
+      },
+      {
+        "score": 22,
+        "default": true
+      }
+    ]
+  },
+  "defaults_when_unmatched": {
+    "FOOTWEAR": 18,
+    "APPAREL": 14,
+    "OTHER": 12
+  },
+  "cap": {
+    "min": 4,
+    "max": 30
+  }
+}

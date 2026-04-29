@@ -1,0 +1,153 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "997-1022 (inferProductType) + 1494-1515 (inferCat/Gender/Season)",
+    "note": "inferGender 평가 순서 중요 — WOMEN → KIDS → MEN → UNISEX 순으로 첫 매치 확정"
+  },
+  "category": {
+    "FOOTWEAR": [
+      "SHOE",
+      "SNEAKER",
+      "BOOT",
+      "FOOTWEAR"
+    ],
+    "APPAREL": [
+      "TEE",
+      "SHIRT",
+      "JACKET",
+      "PANTS",
+      "HOODIE"
+    ],
+    "ACCESSORY": [
+      "BAG",
+      "CAP",
+      "SOCK",
+      "ACCESSORY"
+    ],
+    "_default": "OTHER"
+  },
+  "gender": {
+    "WOMEN": [
+      "WOMEN",
+      "WOMAN",
+      "LADIES",
+      "FEMALE"
+    ],
+    "KIDS": [
+      "KIDS",
+      "CHILD",
+      "INFANT",
+      "JUNIOR",
+      "JR"
+    ],
+    "MEN": [
+      "MEN",
+      "MENS",
+      "MALE"
+    ],
+    "_default": "UNISEX",
+    "_evaluation_order": [
+      "WOMEN",
+      "KIDS",
+      "MEN",
+      "UNISEX"
+    ]
+  },
+  "season": {
+    "regex": "(SS|FW|S|F)(2[0-9])",
+    "output_format": "$1$2",
+    "_default": "N/A"
+  },
+  "product_type": {
+    "from_inferProductType": {
+      "HOODIE": [
+        "HOODIE",
+        "HOOD"
+      ],
+      "SWEATSHIRT": [
+        "SWEATSHIRT",
+        "CREWNECK"
+      ],
+      "POLO": [
+        "POLO",
+        " PK "
+      ],
+      "TEE": [
+        "TEE",
+        "T-SHIRT"
+      ],
+      "JACKET": [
+        "JACKET",
+        "TRACK TOP",
+        "TRACK JACKET"
+      ],
+      "PUFFER": [
+        "PUFFER",
+        "DOWN",
+        "PARKA"
+      ],
+      "COAT": [
+        "COAT",
+        "TRENCH"
+      ],
+      "PANTS": [
+        "PANTS",
+        "TROUSERS",
+        "CHINO"
+      ],
+      "SHORTS": [
+        "SHORT"
+      ],
+      "JEANS": [
+        "JEANS",
+        "DENIM"
+      ],
+      "SKIRT": [
+        "SKIRT"
+      ],
+      "DRESS": [
+        "DRESS"
+      ],
+      "SHIRT": [
+        "SHIRT",
+        "OXFORD",
+        "FLANNEL"
+      ],
+      "KNIT": [
+        "KNIT",
+        "SWEATER",
+        "KNITWEAR"
+      ],
+      "VEST": [
+        "VEST",
+        "GILET"
+      ],
+      "SNEAKERS": [
+        "SAMBA",
+        "GAZELLE",
+        "SNEAKER",
+        "TRAINER"
+      ],
+      "BOOTS": [
+        "BOOT"
+      ],
+      "SLIDES": [
+        "SANDAL",
+        "SLIDE"
+      ],
+      "CAP": [
+        "CAP",
+        "HAT",
+        "BEANIE"
+      ],
+      "BAG": [
+        "BAG",
+        "TOTE"
+      ],
+      "BACKPACK": [
+        "BACKPACK"
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1342-1348 (sSize)"
+  },
+  "by_category": {
+    "FOOTWEAR": 20,
+    "APPAREL": 9,
+    "ACCESSORY": 12,
+    "ACCESSORIES": 12
+  },
+  "default_score": 10
+}

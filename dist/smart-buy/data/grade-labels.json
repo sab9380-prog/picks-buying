@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1463-1477 (gradeLabel + gradeCls)"
+  },
+  "thresholds": [
+    {
+      "min_score": 80,
+      "label": "최우선 매입",
+      "cls": "80"
+    },
+    {
+      "min_score": 70,
+      "label": "적극 권장",
+      "cls": "70"
+    },
+    {
+      "min_score": 60,
+      "label": "조건부",
+      "cls": "60"
+    },
+    {
+      "min_score": 50,
+      "label": "신중",
+      "cls": "50"
+    }
+  ],
+  "default": {
+    "label": "패스",
+    "cls": "0"
+  }
+}

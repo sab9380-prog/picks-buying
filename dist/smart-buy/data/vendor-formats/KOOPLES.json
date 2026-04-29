@@ -1,0 +1,56 @@
+{
+  "vendor": "KOOPLES",
+  "displayName": "The Kooples Premium",
+  "description": "wide-format Excel (sizes spread across columns 13-53). JSC PRICE = unit cost after deep discount (~90% off RRP).",
+  "match": {
+    "filenameRegex": "^KOOPLES_",
+    "sheetName": "OFFER"
+  },
+  "headerRow": 6,
+  "dataStartRow": 7,
+  "shape": "wide",
+  "brand": "KOOPLES",
+  "currency": "EUR",
+  "columns": {
+    "style": "ARTICLE CODE",
+    "color": "COLOR NAME",
+    "category": "CATEGORY",
+    "gender": "GENDER",
+    "season": "SEASON",
+    "product": "PRODUCT",
+    "rrp": "RRP",
+    "jsc": "JSC PRICE",
+    "qtyTotal": "QTY",
+    "discount": "DISCOUNT ON RRP"
+  },
+  "sizeColumns": {
+    "startIndex": 13,
+    "endIndex": 53,
+    "labelFromHeaderRow": true,
+    "skipNullOrZero": true
+  },
+  "categoryMap": {
+    "BAGS": "OTHER",
+    "ACCESSORIES": "ACCESSORY",
+    "ACCESSOIRES": "ACCESSORY",
+    "FOOTWEAR": "FOOTWEAR",
+    "SHOES": "FOOTWEAR",
+    "READY-TO-WEAR": "APPAREL",
+    "RTW": "APPAREL",
+    "APPAREL": "APPAREL",
+    "JEWELRY": "ACCESSORY"
+  },
+  "genderMap": {
+    "MEN": "MEN",
+    "WOMEN": "WOMEN",
+    "MAN": "MEN",
+    "WOMAN": "WOMEN",
+    "UNISEX": "UNISEX"
+  },
+  "notes": [
+    "JSC/RRP 비율이 평균 0.10 (RRP의 ~10% 가격) — 일반 도매(0.30~0.50)와 다름. 가격 시그널 진단이 거의 모두 'BUY' 기울 가능. 라운드 5에서 휴리스틱 가중치 보정 필요.",
+    "BRAND 컬럼이 데이터에 없음 — config.brand 값 KOOPLES 적용",
+    "ARRIVAL/CHANNEL 컬럼 없음 — 빈값으로 진행, 도착월/채널 통계는 비어 있음",
+    "SEASON은 시즌명만 있고 연도 없음 (예: 'SS')"
+  ]
+}

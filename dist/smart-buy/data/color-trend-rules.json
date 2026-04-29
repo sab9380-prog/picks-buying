@@ -1,0 +1,265 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1238-1340 (sColor 함수)",
+    "basis": "무신사 결산리포트(2025.12), 2026 스카이블루, 모카무스 트렌드, 레이디경향 컬러풀 귀환",
+    "note": "sColor는 분기 우선순위가 의미를 가짐 — 평가 순서를 evaluation_order에 명시"
+  },
+  "default_score": 10,
+  "tiers": [
+    {
+      "grade": "S",
+      "score": 20,
+      "label": "블랙 단색",
+      "keywords": [
+        "BLACK",
+        "CBLACK",
+        "CORE BLACK",
+        "TRIPLE BLACK",
+        "ONYX"
+      ],
+      "exclusion": "WHITE/GREY/BROWN/GREEN/RED/BLUE/NAVY/BURGUNDY 미포함",
+      "basis": "시즌 무관 최상 — NC OPR 소진율 최상"
+    },
+    {
+      "grade": "S",
+      "score": 20,
+      "label": "화이트·크림 단색",
+      "keywords": [
+        "WHITE",
+        "CWHITE",
+        "CHALK",
+        "CLOUD",
+        "CREAM",
+        "IVORY",
+        "OFF WHITE",
+        "OFFWHITE",
+        "LINEN",
+        "SAND"
+      ],
+      "exclusion": "BLACK/GREY/그 외 컬러 미포함",
+      "basis": "무신사 에어포스1 화이트 2025 1위(55,600켤레)"
+    },
+    {
+      "grade": "A",
+      "score": 18,
+      "label": "블랙+화이트 조합",
+      "keywords": [
+        "BLACK+WHITE"
+      ],
+      "basis": "클래식 듀얼톤"
+    },
+    {
+      "grade": "A",
+      "score": 18,
+      "label": "화이트+(NAVY/GREEN/BLUE/BROWN/GUM/RED)",
+      "keywords": [
+        "WHITE+NAVY",
+        "WHITE+GREEN",
+        "WHITE+BLUE",
+        "WHITE+BROWN",
+        "WHITE+GUM",
+        "WHITE+RED"
+      ],
+      "basis": "SHADOW NAVY/IVORY/GUM 등"
+    },
+    {
+      "grade": "B",
+      "score": 16,
+      "label": "베이지·뉴트럴 (모카무스 트렌드)",
+      "keywords": [
+        "BEIGE",
+        "CAMEL",
+        "TAN",
+        "MOCHA",
+        "LATTE",
+        "SAND",
+        "OATMEAL",
+        "NATURAL",
+        "NUDE",
+        "BONE",
+        "ECRU",
+        "WHEAT",
+        "CREAM",
+        "IVORY",
+        "OFF WHITE",
+        "OFFWHITE"
+      ],
+      "exclusion": "BLACK 미포함 시",
+      "basis": "2025 트렌드컬러 모카무스 + 베이지 수요 폭발"
+    },
+    {
+      "grade": "C",
+      "score": 14,
+      "label": "그레이 계열",
+      "keywords": [
+        "GREY",
+        "GRAY",
+        "SILVER",
+        "MELANGE",
+        "HEATHER",
+        "MARL",
+        "CHARCOAL",
+        "CONCRETE"
+      ]
+    },
+    {
+      "grade": "D",
+      "score": 13,
+      "label": "어스톤·그린",
+      "keywords": [
+        "GREEN",
+        "OLIVE",
+        "KHAKI",
+        "SAGE",
+        "FOREST",
+        "HUNTER",
+        "MOSS",
+        "FERN",
+        "EARTH",
+        "MILITARY",
+        "UTILITY"
+      ],
+      "basis": "2024-25 연속 강세, Originals 헤리티지"
+    },
+    {
+      "grade": "D",
+      "score": 13,
+      "label": "브라운",
+      "keywords": [
+        "BROWN",
+        "WALNUT",
+        "RUST",
+        "TERRACOTTA",
+        "SIENNA",
+        "CHOCOLATE",
+        "COGNAC",
+        "GUM",
+        "CARAMEL"
+      ]
+    },
+    {
+      "grade": "E",
+      "score": 12,
+      "label": "네이비",
+      "keywords": [
+        "NAVY",
+        "MIDNIGHT",
+        "DARK BLUE",
+        "DARKBLUE"
+      ]
+    },
+    {
+      "grade": "F",
+      "score": 11,
+      "label": "버건디·와인",
+      "keywords": [
+        "BURGUNDY",
+        "WINE",
+        "BORDEAUX",
+        "MAROON",
+        "OXBLOOD"
+      ]
+    },
+    {
+      "grade": "F",
+      "score": 11,
+      "label": "레드",
+      "keywords": [
+        "RED",
+        "SCARLET",
+        "CRIMSON"
+      ]
+    },
+    {
+      "grade": "G",
+      "score": 10,
+      "label": "블루 계열",
+      "keywords": [
+        "BLUE",
+        "INDIGO",
+        "COBALT",
+        "TEAL",
+        "SKY",
+        "DENIM",
+        "AZURE",
+        "SAPPHIRE"
+      ],
+      "basis": "데님 수요 + 2026 틸 상승 예고"
+    },
+    {
+      "grade": "H",
+      "score": 8,
+      "label": "파스텔·기타",
+      "keywords": [
+        "PINK",
+        "ROSE",
+        "BLUSH",
+        "LAVENDER",
+        "LILAC",
+        "VIOLET",
+        "MAUVE",
+        "PEACH",
+        "MINT",
+        "CORAL",
+        "LIGHT",
+        "PALE",
+        "PASTEL",
+        "YELLOW",
+        "ORANGE",
+        "PURPLE"
+      ]
+    },
+    {
+      "grade": "I",
+      "score": 6,
+      "label": "비비드 단색",
+      "keywords": [
+        "BRIGHT YELLOW",
+        "VIVID YELLOW",
+        "SIGNAL ORANGE",
+        "VIVID ORANGE",
+        "VIVID RED",
+        "CYAN",
+        "ELECTRIC BLUE",
+        "VIVID PURPLE"
+      ]
+    },
+    {
+      "grade": "J",
+      "score": 4,
+      "label": "멀티/AOP/프린트",
+      "keywords": [
+        "AOP",
+        "ALLOVER",
+        "ALL OVER",
+        "MULTICOLOR",
+        "MULTI COLOR",
+        "PRINTED",
+        "FLORAL",
+        "CAMO",
+        "CAMOUFLAGE",
+        "LEOPARD",
+        "ANIMAL PRINT",
+        "TIE DYE",
+        "TIEDYE"
+      ]
+    },
+    {
+      "grade": "K",
+      "score": 2,
+      "label": "네온",
+      "keywords": [
+        "NEON",
+        "FLUORESCENT",
+        "HIGHLIGHTER",
+        "VOLT",
+        "LIME GREEN",
+        "LIME PUNCH"
+      ],
+      "basis": "한국 OPR 소진율 최하"
+    }
+  ],
+  "evaluation_order": "K → J → I → S(black) → S(white) → A → B → C → D(green) → D(brown) → E → F(burgundy) → F(red) → G → H → default"
+}

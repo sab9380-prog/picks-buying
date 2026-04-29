@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "v12-original.html",
+    "source_lines": "1365-1372 (sSeason)"
+  },
+  "tiers": [
+    {
+      "score": 10,
+      "season_codes": [
+        "S26",
+        "F26",
+        "SS26",
+        "FW26"
+      ]
+    },
+    {
+      "score": 8,
+      "season_codes": [
+        "S25",
+        "F25",
+        "SS25",
+        "FW25"
+      ]
+    },
+    {
+      "score": 5,
+      "season_codes": [
+        "S24",
+        "F24",
+        "SS24",
+        "FW24"
+      ]
+    },
+    {
+      "score": 2,
+      "season_codes": [
+        "S23",
+        "F23",
+        "SS23",
+        "FW23"
+      ]
+    }
+  ],
+  "default_score": 1,
+  "match_mode": "first_substring_includes"
+}
