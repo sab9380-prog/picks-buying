@@ -59,6 +59,10 @@ function esc(s) {
 }
 function cssEsc(s) { return String(s).replace(/(["\\])/g, '\\$1'); }
 
+// 정렬 화살표 SVG (인라인) — 외부 라이브러리 없음.
+// off 상태는 양쪽 dim, asc/desc는 해당 방향만 강조 (CSS로 fill 변경).
+const SORT_ARROWS_SVG = `<svg class="sort-arrows" width="9" height="12" viewBox="0 0 9 12" aria-hidden="true"><path class="sort-arrow-up" d="M4.5 1 L8 5 L1 5 Z"/><path class="sort-arrow-down" d="M4.5 11 L1 7 L8 7 Z"/></svg>`;
+
 // ── 메인 렌더 ───────────────────────────────────────────────────
 /**
  * @param {HTMLElement} container
@@ -84,7 +88,7 @@ export function renderSkuTable(container, list, opts = {}) {
 
   const state = {
     sortKey: opts.defaultSortKey || '_idx',
-    sortDir: opts.defaultSortDir || 'asc',
+    sortDir: opts.defaultSortDir || 'asc',  // 'asc' | 'desc' | 'off'
     activeSku: null,
     list: list.slice()  // 원본 순서 보존을 위한 복사
   };
@@ -98,20 +102,25 @@ export function renderSkuTable(container, list, opts = {}) {
   const detailWrap = container.querySelector(`[data-testid="detail-${testId}"]`);
 
   function rerender() {
+    // 'off' 상태이거나 정렬 함수가 없으면 원본 순서 유지 (state.list 그대로).
+    // _idx 컬럼은 항상 인덱스 기반이므로 'off'와 동일 결과.
     const sorted = state.list.slice();
-    const col = COLS.find(c => c.key === state.sortKey);
-    if (col && col.sort) {
-      sorted.sort((a, b) => {
-        const av = col.sort(a, state.list.indexOf(a));
-        const bv = col.sort(b, state.list.indexOf(b));
-        const cmp = (av < bv) ? -1 : (av > bv) ? 1 : 0;
-        return state.sortDir === 'asc' ? cmp : -cmp;
-      });
+    if (state.sortDir !== 'off') {
+      const col = COLS.find(c => c.key === state.sortKey);
+      if (col && col.sort) {
+        sorted.sort((a, b) => {
+          const av = col.sort(a, state.list.indexOf(a));
+          const bv = col.sort(b, state.list.indexOf(b));
+          const cmp = (av < bv) ? -1 : (av > bv) ? 1 : 0;
+          return state.sortDir === 'asc' ? cmp : -cmp;
+        });
+      }
     }
 
     const head = COLS.map(c => {
-      const cls = c.key === state.sortKey ? `sort-${state.sortDir}` : '';
-      return `<th class="${cls}" data-key="${c.key}">${esc(c.label)}</th>`;
+      const isActive = c.key === state.sortKey && state.sortDir !== 'off';
+      const cls = isActive ? `sort-${state.sortDir}` : 'sort-off';
+      return `<th class="${cls}" data-key="${c.key}"><span class="th-label">${esc(c.label)}</span>${SORT_ARROWS_SVG}</th>`;
     }).join('');
 
     const rows = sorted.map((d, i) => {
@@ -132,13 +141,16 @@ export function renderSkuTable(container, list, opts = {}) {
         <tbody>${rows}</tbody>
       </table>`;
 
-    // 정렬 핸들러
+    // 정렬 핸들러 — 3-state (asc → desc → off → asc).
+    // off 상태로 돌아가면 원본 순서 복원 (TOP 20의 추천 순서가 보존됨).
     tableWrap.querySelectorAll('th').forEach(th => {
       th.addEventListener('click', () => {
         const key = th.dataset.key;
         if (!key) return;
         if (state.sortKey === key) {
-          state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          state.sortDir = state.sortDir === 'asc' ? 'desc'
+                       : state.sortDir === 'desc' ? 'off'
+                       : 'asc';
         } else {
           state.sortKey = key;
           state.sortDir = 'asc';

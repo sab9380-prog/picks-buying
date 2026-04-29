@@ -18,6 +18,7 @@ import {
 } from './dashboard.js';
 import { aggregateOffer } from './engine/aggregate.js';
 import { renderSkuTable } from './sku-table.js';
+import { renderTableControls, applyControls } from './shared/table-controls.js';
 import { loadVendorConfigs, detectVendor, applyVendor, autoDetectFormat } from './vendor-adapter.js';
 
 // ── 상태 ────────────────────────────────────────────────────────────
@@ -27,7 +28,6 @@ let offerMcMap = null;
 let currentBatchId = null;
 let currentDiagnoses = [];
 let currentDecisions = [];
-let currentMode = 'bulk';
 let currentBatchCurrencySource = '';   // "CURRENCY 컬럼 (X)" 등 — 진단 텍스트 주석용
 let pendingFile = null;                // 사용자가 파일 선택만 하고 제출 전 임시 보관
 
@@ -67,7 +67,7 @@ async function init() {
   await restoreLastBatch();
 
   bindUI();
-  status('준비 완료. Excel 업로드 또는 단건 입력으로 시작.');
+  status('준비 완료. Excel 업로드로 시작.');
 }
 
 async function restoreLastBatch() {
@@ -101,9 +101,6 @@ function bindUI() {
   // 헤더 "오퍼 업로드" — 클릭 시 파일 다이얼로그 (label for=file-input). 추가로
   // panel-bulk를 보장 표시 + 입력 폼으로 스크롤.
   $('#btn-mode-bulk').addEventListener('click', () => {
-    currentMode = 'bulk';
-    $$('.header-actions [data-mode]').forEach(x => x.classList.toggle('active', x.id === 'btn-mode-bulk'));
-    $('#panel-single').style.display = 'none';
     const panel = $('#panel-bulk');
     if (panel) panel.removeAttribute('hidden');
     panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -114,25 +111,6 @@ function bindUI() {
       e.preventDefault();
       input.click();
     }
-  });
-  $('#btn-mode-single').addEventListener('click', (e) => {
-    currentMode = 'single';
-    $$('.header-actions [data-mode]').forEach(x => x.classList.toggle('active', x === e.currentTarget));
-    const panel = $('#panel-single');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  });
-
-  $('#single-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const o = Object.fromEntries(fd.entries());
-    const offer = toOffer({
-      brand: o.brand, style: o.style, color: o.color, size: o.size,
-      category: o.category, gender: o.gender, product: o.product, sports: o.sports,
-      jsc: parseFloat(o.jsc) || 0, rrp: parseFloat(o.rrp) || 0,
-      qty: parseInt(o.qty, 10) || 0, season: o.season
-    }, 'BATCH-SINGLE-' + Date.now(), 0);
-    await processOffers([offer]);
   });
 
   // file input change — 즉시 분석 X. 임시 보관 + UI 표시.
@@ -181,9 +159,8 @@ function bindUI() {
     b.addEventListener('click', () => {
       const tab = b.dataset.tab;
       $$('.tabs button').forEach(x => x.classList.toggle('active', x === b));
-      $('#tab-content-dashboard').hidden = tab !== 'dashboard';
-      $('#tab-content-top20').hidden     = tab !== 'top20';
-      $('#tab-content-all').hidden       = tab !== 'all';
+      $('#tab-content-overview').hidden = tab !== 'overview';
+      $('#tab-content-deep').hidden     = tab !== 'deep';
     });
   });
 }
@@ -461,38 +438,79 @@ async function renderAllTabs(allDiagnoses) {
   renderFilters($('#filter-chips-wrap'), allDiagnoses);
 
   // 3) 진단 텍스트 (통화 정보 + 환율 가정 + 컨텍스트 추출 결과 + 적용 메타)
+  //    보조 KPI 4종은 진단 카드 안에 함께 표시 — verdict 앞에 근거 수치로 배치.
+  const matchedSkus = allDiagnoses.filter(d => d.pricing?.psychPriceSource === 'db').length;
   renderDiagnosisText($('#diagnosis-text-wrap'), agg, allDiagnoses.length, {
     currencySource: currentBatchCurrencySource,
     considerations: extractedConsiderations,
     ctxApplied,
-    originalAvgBuyRate
+    originalAvgBuyRate,
+    matchedSkus
   });
 
   // (이전: 결과 영역에도 MD 컨텍스트 textarea를 렌더했으나, 입력/진단 영역 분리
   //  원칙에 따라 제거. 입력은 입력 폼에서만, 결과 영역은 진단·분석 전용.)
 
-  // 4) 대시보드 탭 (보조 KPI 4종 + 차트들)
-  renderDashboard($('#tab-content-dashboard'), allDiagnoses);
+  // 4) 전체 분석 탭의 통계 8종 (헤더·hero·진단은 정적 컨테이너에 위에서 이미 렌더됨)
+  renderDashboard($('#overview-stats'), allDiagnoses);
 
-  // 6) TOP 20
+  // 5) 심층 분석 탭 — 토글(TOP 20 / 전체 SKU) + 공통 컨트롤 + 활성 뷰
   const top = rankTop20(allDiagnoses);
-  renderSkuTable($('#tab-content-top20'), top, {
-    testId: 'top20-table',
-    decisions: currentDecisions,
-    onDecision: handleDecision,
-    defaultSortKey: 'score',
-    defaultSortDir: 'desc'
+  const all = rankAll(allDiagnoses);
+  renderDeepTab($('#tab-content-deep'), { top, all });
+}
+
+// 심층 분석 탭 렌더 — 한 번에 하나의 표만 보임 (TOP 20 또는 전체 SKU).
+// 토글로 전환하며 필터·검색 컨트롤은 공통 적용. 정렬은 각 표 헤더 클릭으로 별도.
+// 기본 활성: TOP 20.
+function renderDeepTab(container, { top, all }) {
+  container.innerHTML = `
+    <div class="deep-view-toggle" data-testid="deep-view-toggle" role="tablist">
+      <button class="active" data-view="top20" role="tab" aria-selected="true">TOP 20 매입 추천</button>
+      <button data-view="all" role="tab" aria-selected="false">전체 SKU 표</button>
+    </div>
+    <div class="deep-controls" data-testid="deep-controls"></div>
+    <div class="deep-view-wrap" data-testid="deep-view-wrap"></div>
+  `;
+
+  // 공통 상태 — 토글 + 필터·검색 (양쪽 뷰에 같은 필터 적용)
+  const state = {
+    view: 'top20',
+    search: '',
+    selected: { brand: new Set(), category: new Set(), season: new Set(), gender: new Set() }
+  };
+
+  const wrap = container.querySelector('[data-testid="deep-view-wrap"]');
+  const ctrlWrap = container.querySelector('[data-testid="deep-controls"]');
+
+  function rerenderView() {
+    const source = state.view === 'top20' ? top : all;
+    const filtered = applyControls(source, state);
+    renderSkuTable(wrap, filtered, {
+      testId: state.view === 'top20' ? 'top20-table' : 'all-sku-table',
+      decisions: currentDecisions,
+      onDecision: handleDecision,
+      defaultSortKey: state.view === 'top20' ? 'score' : '_idx',
+      defaultSortDir: state.view === 'top20' ? 'desc'  : 'asc'
+    });
+  }
+
+  // 토글 클릭 — view 전환
+  container.querySelectorAll('.deep-view-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.view = btn.dataset.view;
+      container.querySelectorAll('.deep-view-toggle button').forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      rerenderView();
+    });
   });
 
-  // 7) 전체 SKU
-  const all = rankAll(allDiagnoses);
-  renderSkuTable($('#tab-content-all'), all, {
-    testId: 'all-sku-table',
-    decisions: currentDecisions,
-    onDecision: handleDecision,
-    defaultSortKey: '_idx',
-    defaultSortDir: 'asc'
-  });
+  // 컨트롤 — 옵션 후보는 전체 SKU 기준으로 추출 (TOP 20보다 풍부)
+  renderTableControls(ctrlWrap, all, state, rerenderView);
+  rerenderView();
 }
 
 async function handleDecision({ diagnosis, decision, memo }) {

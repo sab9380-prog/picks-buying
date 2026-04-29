@@ -58,9 +58,9 @@ function renderBarChart(container, data, opts = {}) {
     const fill = colors ? colors[i % colors.length] : color;
     return `
       <g>
-        <text x="0" y="${y + 14}" font-size="12" font-weight="400" fill="${labelColor}">${safeLabel}</text>
+        <text class="chart-bar-label" x="0" y="${y + 16}" fill="${labelColor}">${safeLabel}</text>
         <rect x="${labelW}" y="${y + 4}" width="${w}" height="16" fill="${fill}" rx="3" />
-        <text x="${labelW + w + 6}" y="${y + 16}" font-size="11" font-weight="500" fill="${valueColor}" font-variant-numeric="tabular-nums">${valueFmt(v, d)}</text>
+        <text class="chart-bar-value" x="${labelW + w + 6}" y="${y + 16}" fill="${valueColor}">${valueFmt(v, d)}</text>
       </g>`;
   }).join('');
 
@@ -563,9 +563,9 @@ export function renderFilters(container, allDiagnoses) {
   `;
 }
 
-// ── 진단 요약 (핵심 결론 1줄 + 내레이티브 단락 1개) ─────────────
-// MD가 의사결정할 수 있도록: 맨 위 결론 → 아래 단락에 근거·협상카드·위험·외환을
-// 자연스러운 흐름으로 흘려보냄. 항목별 단락 분리 X.
+// ── 진단 요약 (핵심 결론 1줄 + 보조 KPI 4종 + 내레이티브 단락 1개) ─
+// MD가 의사결정할 수 있도록: 맨 위 결론 → 보조 KPI(권고 근거 수치) → 내레이티브.
+// 보조 KPI 4종은 진단 카드 안에 통합 (이전: 대시보드 탭의 별도 섹션).
 export function renderDiagnosisText(container, agg, totalUnfiltered, ctxMeta = {}) {
   if (!agg.totalSkus) { container.innerHTML = ''; return; }
 
@@ -807,6 +807,20 @@ export function renderDiagnosisText(container, agg, totalUnfiltered, ctxMeta = {
     `;
   }
 
+  // ── 보조 KPI 4종 (진단 카드 안 — verdict 앞에 근거 수치로 배치) ──
+  // 이전: 대시보드 탭의 #kpi-grid-secondary 별도 섹션.
+  // 이동 사유: verdict(권고)를 뒷받침하는 수치 → 위계 (cons → verdict → KPI → narrative)
+  const matchedSkus = ctxMeta.matchedSkus ?? 0;
+  const matchPct = agg.totalSkus > 0 ? matchedSkus / agg.totalSkus : 0;
+  const diagKpiGrid = `
+    <div class="diag-kpi-grid" data-testid="kpi-grid-secondary">
+      ${kpiCard('가중평균 점수', fmtScore(agg.weightedScore), `단순 ${fmtScore(agg.simpleScore)}`)}
+      ${kpiCard('위험 SKU', fmtNum(agg.riskCount), `${(agg.totalSkus ? agg.riskCount/agg.totalSkus*100 : 0).toFixed(1)}%`)}
+      ${kpiCard('가격모순', fmtNum(agg.pricingMismatchCount), `심리가 < 목표가`)}
+      ${kpiCard('중심가 매칭률', fmtPct(matchPct), `${matchedSkus}/${agg.totalSkus} (db만 매칭)`)}
+    </div>
+  `;
+
   container.innerHTML = `
     <h3 class="hero-section-title">
       <span class="hero-section-scope">진단 요약</span>
@@ -818,6 +832,7 @@ export function renderDiagnosisText(container, agg, totalUnfiltered, ctxMeta = {
         <span class="diag-verdict-label">권고</span>
         <span class="diag-verdict-text">${verdictLabel}</span>
       </div>
+      ${diagKpiGrid}
       <div class="diag-prose">
         <p>${narrative}</p>
       </div>
@@ -910,22 +925,12 @@ function escHtml(s) {
   }[c]));
 }
 
-// ── 메인 렌더 (대시보드 탭 차트만 — KPI는 hero로 이동됨) ───────
+// ── 메인 렌더 (전체 분석 탭 — 통계 8종만. 보조 KPI 4종은 진단 카드로 이동됨) ──
 export function renderDashboard(container, diagnoses, offers = null) {
   const a = aggregateOffer(diagnoses, offers);
 
-  const matchedSkus = diagnoses.filter(d =>
-    d.pricing && d.pricing.psychPriceSource === 'db'
-  ).length;
-  const matchPct = a.totalSkus > 0 ? matchedSkus / a.totalSkus : 0;
-
   container.innerHTML = `
     <div class="dash">
-      <!-- 보조 지표 (hero에 안 들어간 4종) -->
-      <div class="dash-section dash-secondary">
-        <div class="kpi-grid kpi-grid-secondary" data-testid="kpi-grid-secondary"></div>
-      </div>
-
       <!-- 통계 8종 (등급 분포 + 7종) — 4 × 2 그리드 -->
       <div class="dash-section">
         <h3>통계 8종</h3>
@@ -951,15 +956,6 @@ export function renderDashboard(container, diagnoses, offers = null) {
 
     </div>
   `;
-
-  // 보조 KPI 4종 (hero 5종을 제외한 나머지) — 대시보드 탭 안에만 표시
-  const kpiSecondary = container.querySelector('[data-testid="kpi-grid-secondary"]');
-  kpiSecondary.innerHTML = [
-    kpiCard('가중평균 점수',   fmtScore(a.weightedScore), `단순 ${fmtScore(a.simpleScore)}`),
-    kpiCard('위험 SKU',        fmtNum(a.riskCount), `${(a.totalSkus ? a.riskCount/a.totalSkus*100 : 0).toFixed(1)}%`),
-    kpiCard('가격모순',        fmtNum(a.pricingMismatchCount), `심리가 < 목표가`),
-    kpiCard('중심가 매칭률',   fmtPct(matchPct), `${matchedSkus}/${a.totalSkus} (db만 매칭)`)
-  ].join('');
 
   // 등급 분포 — 등급별로 다른 색 (Linear의 priority 누적 막대 패턴)
   const gradeData = Object.entries(a.gradeDistribution)

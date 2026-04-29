@@ -112,39 +112,6 @@
   }
 
   /* ====================================================================
-   * Mode toggle (segmented control) — pill style, ghost inactive
-   * ==================================================================== */
-  .mode-toggle {
-    display: inline-flex;
-    gap: 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--r-pill);
-    background: var(--bg-elevated);
-    padding: 3px;
-    width: fit-content;
-    margin-bottom: var(--space-7);
-  }
-  .mode-toggle button {
-    background: transparent; border: 0;
-    color: var(--text-secondary);
-    padding: 6px var(--space-4);
-    cursor: pointer;
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-medium);
-    letter-spacing: 0;
-    border-radius: var(--r-pill);
-    transition: color var(--dur-fast) var(--ease-standard),
-                background var(--dur-fast) var(--ease-standard);
-  }
-  .mode-toggle button:hover { color: var(--text-primary); }
-  .mode-toggle button.active {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    font-weight: var(--fw-medium);
-    box-shadow: 0 0 0 0.5px var(--border-strong) inset;
-  }
-
-  /* ====================================================================
    * Input panel
    * ==================================================================== */
   .input-panel {
@@ -294,7 +261,7 @@
     background: transparent;
     border: 0;
     color: var(--text-tertiary);
-    font-size: 18px;
+    font-size: var(--fs-lg);
     line-height: 1;
     width: 24px;
     height: 24px;
@@ -424,36 +391,6 @@
   .btn-primary-icon { font-size: var(--fs-md); }
   .btn-primary-text { font-family: var(--font-sans); }
 
-  /* ====================================================================
-   * Single form
-   * ==================================================================== */
-  .single-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3) var(--space-4); }
-  .single-form label {
-    font-size: var(--fs-xs);
-    color: var(--text-secondary);
-    display: block; margin-bottom: var(--space-1);
-    font-weight: var(--fw-regular);
-    letter-spacing: 0;
-  }
-  .single-form input, .single-form select {
-    width: 100%;
-    padding: 7px var(--space-3);
-    background: var(--bg-input);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--r-md);
-    color: var(--text-primary);
-    font-size: var(--fs-sm);
-    font-family: inherit;
-    transition: border-color var(--dur-fast) var(--ease-standard),
-                box-shadow var(--dur-fast) var(--ease-standard);
-  }
-  .single-form input:focus, .single-form select:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: var(--shadow-glow-accent);
-  }
-  .single-form .row-button { grid-column: span 4; text-align: right; margin-top: var(--space-2); }
-
   /* Primary button — Linear pill CTA */
   .btn {
     background: var(--accent-primary);
@@ -501,6 +438,143 @@
   }
   .tab-content { min-height: 200px; }
   .tab-content[hidden] { display: none !important; }
+
+  /* ====================================================================
+   * 심층 분석 탭 — 토글(TOP 20 / 전체 SKU) + 공통 컨트롤(필터·검색) + 활성 뷰
+   * 한 번에 한 표만 보임. 토글은 segmented control(필터 칩 패턴: active=화이트
+   * 배경 + 어두운 글자, inactive=보더만).
+   * ==================================================================== */
+  .deep-view-toggle {
+    display: inline-flex;
+    gap: 0;
+    padding: 3px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-pill);
+    margin-bottom: var(--space-5);
+  }
+  .deep-view-toggle button {
+    background: transparent;
+    border: 0;
+    padding: 6px var(--space-5);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    letter-spacing: 0;
+    transition: color var(--dur-fast) var(--ease-standard),
+                background var(--dur-fast) var(--ease-standard);
+  }
+  .deep-view-toggle button:hover { color: var(--text-primary); }
+  .deep-view-toggle button.active {
+    /* 활성: 화이트 배경 + 어두운 글자 (필터 칩 active 패턴과 동일 의도) */
+    background: var(--text-primary);
+    color: var(--bg-base);
+    font-weight: var(--fw-semibold);
+  }
+  .deep-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+  }
+  .deep-controls-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .deep-search-input {
+    flex: 1;
+    min-width: 240px;
+    padding: 7px var(--space-3);
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    transition: border-color var(--dur-fast) var(--ease-standard),
+                box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  .deep-search-input::placeholder {
+    color: var(--text-tertiary);
+  }
+  .deep-search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-glow-accent);
+  }
+  .deep-search-hint {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    min-width: 60px;
+  }
+  .deep-controls-chips {
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  .deep-filter-group {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .deep-filter-label {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    margin-right: var(--space-1);
+    flex-shrink: 0;
+  }
+  .deep-filter-chips-inner {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  .deep-filter-empty {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+  }
+  /* 클릭 가능한 필터 칩 — present 칩 (absent는 후보값에 없으면 표시 안 됨).
+     selected: 강조 (accent), 미선택: ghost. */
+  .filter-chip-clickable {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px var(--space-3);
+    border-radius: var(--r-pill);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    letter-spacing: 0;
+    transition: color var(--dur-fast) var(--ease-standard),
+                background var(--dur-fast) var(--ease-standard),
+                border-color var(--dur-fast) var(--ease-standard);
+  }
+  .filter-chip-clickable:hover {
+    color: var(--text-primary);
+    border-color: var(--border-default);
+  }
+  .filter-chip-clickable.selected {
+    color: var(--accent-primary);
+    background: var(--accent-subtle);
+    border-color: var(--accent-primary);
+    font-weight: var(--fw-semibold);
+  }
 
   /* ====================================================================
    * Grade badges (global)
@@ -729,7 +803,7 @@
   /* 시즌·브랜드 행의 원화 환산 — 사용자가 매번 확인하는 핵심 보조 정보.
      중요한 정보라 색·사이즈를 한 단계씩 키움. */
   .ht-sub-sm {
-    font-size: 12px;
+    font-size: var(--fs-xs);
     color: var(--text-secondary);          /* 한 단계 밝게 */
     font-weight: var(--fw-medium);
     font-variant-numeric: tabular-nums;
@@ -815,6 +889,18 @@
   }
 
   .dash-chart { padding: 0; }
+
+  /* SVG 막대 차트 텍스트 — dashboard.js renderBarChart()와 동기.
+     SVG <text>는 CSS font-size를 정상 인식하므로 토큰 단일 출처 유지. */
+  .chart-bar-label {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-regular);
+  }
+  .chart-bar-value {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    font-variant-numeric: tabular-nums;
+  }
 
   /* 통계 8종 — 4 × 2 그리드 (사용자 요청). 정보 밀도 + 일관된 정렬. */
   .dash-stats-grid {
@@ -903,7 +989,9 @@
     white-space: nowrap;
   }
   table.sku th {
-    color: var(--text-tertiary);
+    /* 라벨이 비활성 데이터(text-tertiary)보다 흐리면 위계 거꾸로 — DESIGN.md 3.3.
+       2026-04 R3-C: tertiary → secondary로 한 단계 상향. */
+    color: var(--text-secondary);
     font-weight: var(--fw-medium);
     font-size: var(--fs-xs);
     text-transform: none;
@@ -918,8 +1006,30 @@
   table.sku th:hover { color: var(--text-primary); }
   table.sku th.sort-asc,
   table.sku th.sort-desc { color: var(--text-primary); }
-  table.sku th.sort-asc::after  { content: ' ↑'; color: var(--text-secondary); margin-left: 2px; }
-  table.sku th.sort-desc::after { content: ' ↓'; color: var(--text-secondary); margin-left: 2px; }
+  /* 정렬 화살표 SVG (인라인) — 3-state (asc/desc/off).
+     off: 양쪽 dim, asc: ↑ 강조, desc: ↓ 강조. */
+  table.sku th .sort-arrows {
+    display: inline-block;
+    margin-left: var(--space-1);
+    vertical-align: -2px;
+  }
+  table.sku th .sort-arrow-up,
+  table.sku th .sort-arrow-down {
+    fill: var(--text-tertiary);
+    opacity: 0.5;
+    transition: fill var(--dur-fast) var(--ease-standard),
+                opacity var(--dur-fast) var(--ease-standard);
+  }
+  table.sku th.sort-asc .sort-arrow-up {
+    fill: var(--text-primary);
+    opacity: 1;
+  }
+  table.sku th.sort-desc .sort-arrow-down {
+    fill: var(--text-primary);
+    opacity: 1;
+  }
+  table.sku th:hover .sort-arrow-up,
+  table.sku th:hover .sort-arrow-down { opacity: 0.85; }
   table.sku tbody tr {
     cursor: pointer;
     transition: background var(--dur-fast) var(--ease-standard);
@@ -951,7 +1061,7 @@
     margin-left: var(--space-1);
     padding: 1px 6px;
     border-radius: var(--r-sm);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     color: var(--text-tertiary);
     background: var(--bg-card);
     border: 0;
@@ -1119,7 +1229,7 @@
     margin-left: var(--space-2);
     padding: 1px 7px;
     border-radius: var(--r-pill);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: var(--fw-medium);
     border: 0;
     color: var(--text-tertiary);
@@ -1412,7 +1522,7 @@
     font-variant-numeric: tabular-nums;
   }
   .kpi-sub-sm {
-    font-size: 11px;
+    font-size: var(--fs-xs);
     color: var(--text-tertiary);
   }
 
@@ -1664,11 +1774,50 @@
   }
   .diag-verdict.verdict-mixed .diag-verdict-text { color: var(--signal-warning); }
 
-  /* 보조 KPI 그리드 (대시보드 탭 안) */
-  .kpi-grid-secondary {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  /* ====================================================================
+   * 진단 카드 안 보조 KPI 4종 (이전 대시보드 탭 → 진단 요약 카드로 이동)
+   * verdict 카드 다음 줄에 4컬럼 그리드. 별도 카드 X — 진단 블록 배경 그대로.
+   * KPI 사이즈는 hero(fs-3xl 34px)보다 작게 (fs-xl 20px) — 보조 정보 위계.
+   * ==================================================================== */
+  .diag-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-5);
+    margin: var(--space-4) 0 var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--r-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
   }
-  .dash-secondary { margin-bottom: var(--space-5); }
+  .diag-kpi-grid .kpi {
+    display: flex; flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+  .diag-kpi-grid .kpi-label {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: var(--fw-medium);
+  }
+  .diag-kpi-grid .kpi-value {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);            /* 20px — hero(34px)보다 작게 */
+    font-weight: var(--fw-medium);
+    color: var(--text-primary);
+    line-height: 1.2;
+    letter-spacing: var(--ls-tight);
+    font-variant-numeric: tabular-nums;
+  }
+  .diag-kpi-grid .kpi-sub {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
 
   /* ====================================================================
    * 통화 태그 (hero / 진단 텍스트)
@@ -1678,7 +1827,7 @@
     margin-left: var(--space-2);
     padding: 1px 6px;
     border-radius: var(--r-sm);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: var(--fw-medium);
     color: var(--text-tertiary);
     background: var(--bg-card);
@@ -1781,7 +1930,6 @@
   <div class="header-actions" data-testid="mode-toggle">
     <input type="file" id="file-input" accept=".xlsx,.xls" class="visually-hidden" />
     <label for="file-input" id="btn-mode-bulk" class="btn-upload active" data-mode="bulk" role="button" tabindex="0">📁 오퍼 업로드</label>
-    <button id="btn-mode-single" class="btn-secondary" data-mode="single">단건 입력</button>
     <span id="status-bar" class="status-prominent" data-testid="status-bar"></span>
   </div>
 </header>
@@ -1835,59 +1983,32 @@
     </div>
   </section>
 
-  <!-- 단건 입력 -->
-  <section id="panel-single" class="input-panel" style="display:none;">
-    <form class="single-form" id="single-form">
-      <div><label>브랜드</label><input name="brand" value="ADIDAS" /></div>
-      <div><label>스타일</label><input name="style" value="SAMBA OG" /></div>
-      <div><label>컬러</label><input name="color" value="CORE BLACK" /></div>
-      <div><label>사이즈</label><input name="size" value="42" /></div>
-      <div><label>카테고리</label>
-        <select name="category">
-          <option>FOOTWEAR</option><option>APPAREL</option>
-          <option>ACCESSORY</option><option>OTHER</option>
-        </select>
-      </div>
-      <div><label>성별</label>
-        <select name="gender">
-          <option>MEN</option><option>WOMEN</option>
-          <option>UNISEX</option><option>KIDS</option>
-        </select>
-      </div>
-      <div><label>아이템(product)</label><input name="product" value="SNEAKERS" /></div>
-      <div><label>스포츠(ADIDAS만)</label><input name="sports" value="ORIGINALS" /></div>
-      <div><label>JSC EUR</label><input name="jsc" type="number" step="0.01" value="60" /></div>
-      <div><label>RRP EUR</label><input name="rrp" type="number" step="0.01" value="120" /></div>
-      <div><label>수량</label><input name="qty" type="number" value="100" /></div>
-      <div><label>시즌</label><input name="season" value="SS26" /></div>
-      <div class="row-button">
-        <button type="submit" class="btn">진단 실행</button>
-      </div>
-    </form>
-  </section>
-
-  <!-- 결과 영역: 진단·분석 전용. 입력은 입력 폼에서만. -->
+  <!-- 결과 영역: 진단·분석 전용. 입력은 입력 폼에서만.
+       탭 바가 결과 영역 최상단 — 그 아래 어떤 콘텐츠도 두지 않음. 모든 분석은 탭 콘텐츠 안. -->
   <section id="results-section" style="display:none;">
-    <div class="results-head">
-      <h2 class="results-title">분석 결과</h2>
-      <p class="results-sub">입력하신 매입 고려 사항은 함께 저장되었습니다. 새 분석은 상단 <b>오퍼 업로드</b>를 눌러주세요.</p>
-      <p class="results-fx-note" id="results-fx-note" data-testid="results-fx-note"></p>
-    </div>
-    <div id="filter-chips-wrap" data-testid="filter-chips-wrap"></div>
-    <div id="hero-summary" data-testid="hero-summary"></div>
-    <div id="season-summary" data-testid="season-summary"></div>
-    <div id="brand-summary" data-testid="brand-summary"></div>
-    <div id="season-breakdown" data-testid="season-breakdown" hidden></div>
-    <div id="diagnosis-text-wrap" data-testid="diagnosis-text-wrap"></div>
-
     <div class="tabs" data-testid="tabs">
-      <button id="tab-dashboard" class="active" data-tab="dashboard">전체 오퍼</button>
-      <button id="tab-top20"                 data-tab="top20">TOP 20 매입 추천</button>
-      <button id="tab-all"                   data-tab="all">전체 SKU 표</button>
+      <button id="tab-overview" class="active" data-tab="overview">전체 분석</button>
+      <button id="tab-deep"                    data-tab="deep">심층 분석</button>
     </div>
-    <div id="tab-content-dashboard" class="tab-content" data-testid="tab-dashboard"></div>
-    <div id="tab-content-top20"     class="tab-content" data-testid="tab-top20" hidden></div>
-    <div id="tab-content-all"       class="tab-content" data-testid="tab-all" hidden></div>
+
+    <!-- 전체 분석 탭 — 헤더 / hero / 시즌별 / 브랜드별 / 진단 요약 / 통계 8종 -->
+    <div id="tab-content-overview" class="tab-content" data-testid="tab-overview">
+      <div class="results-head">
+        <h2 class="results-title">분석 결과</h2>
+        <p class="results-sub">입력하신 매입 고려 사항은 함께 저장되었습니다. 새 분석은 상단 <b>오퍼 업로드</b>를 눌러주세요.</p>
+        <p class="results-fx-note" id="results-fx-note" data-testid="results-fx-note"></p>
+      </div>
+      <div id="filter-chips-wrap" data-testid="filter-chips-wrap"></div>
+      <div id="hero-summary" data-testid="hero-summary"></div>
+      <div id="season-summary" data-testid="season-summary"></div>
+      <div id="brand-summary" data-testid="brand-summary"></div>
+      <div id="season-breakdown" data-testid="season-breakdown" hidden></div>
+      <div id="diagnosis-text-wrap" data-testid="diagnosis-text-wrap"></div>
+      <div id="overview-stats" data-testid="overview-stats"></div>
+    </div>
+
+    <!-- 심층 분석 탭 — 토글(TOP 20 / 전체 SKU) + 공통 컨트롤 + 활성 뷰. 동적 렌더. -->
+    <div id="tab-content-deep" class="tab-content" data-testid="tab-deep" hidden></div>
   </section>
 </main>
 

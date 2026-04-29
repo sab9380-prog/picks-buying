@@ -71,12 +71,15 @@
                   "Cascadia Mono", Consolas, monospace;
 
   /* ---------- Font size ----------
-   * Stronger hierarchy — Linear has dramatic gap between body & display. */
-  --fs-xs:      11px;
-  --fs-sm:      13px;
-  --fs-base:    14px;
-  --fs-md:      15px;
-  --fs-lg:      17px;
+   * Stronger hierarchy — Linear has dramatic gap between body & display.
+   * 2026-04 R3-C: 본문/라벨이 11~13px에 과집중되어 1280px+ 데스크톱에서
+   * 작게 느껴진다는 사용자 피드백 반영. xs/sm/base/md/lg를 한 단계씩 상향
+   * (DESIGN.md 4.2 권장 스케일과 정합). 디스플레이 라인(xl 이상)은 유지. */
+  --fs-xs:      12px;
+  --fs-sm:      14px;
+  --fs-base:    15px;
+  --fs-md:      16px;
+  --fs-lg:      18px;
   --fs-xl:      20px;
   --fs-2xl:     26px;
   --fs-3xl:     34px;

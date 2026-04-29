@@ -9,6 +9,7 @@
     "test:normalize": "node shared/brand-normalize.test.mjs",
     "test:oracle": "node _oracle/v12-functions.test.mjs",
     "test:engine": "node engine/diagnose.test.mjs",
+    "test:controls": "node shared/table-controls.test.mjs",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
