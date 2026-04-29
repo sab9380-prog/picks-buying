@@ -131,18 +131,45 @@ test.describe('smart-buy Round 2 E2E', () => {
     await page.screenshot({ path: resolve(SHOTS, '10-persisted-after-reload.png'), fullPage: true });
   });
 
-  test('6. 대시보드 KPI 영역 — 8개 지표 모두 표시', async ({ page }) => {
+  test('6. Hero 5 KPI + 보조 4 KPI + 시즌·필터·진단 표시', async ({ page }) => {
     await gotoReady(page);
     await uploadAndWait(page);
 
+    // Hero 통합 테이블: 헤더 행에 5 라벨 (종합 등급/오퍼 금액/매입율/총 SKU/총 수량)
+    const heroCells = await page.locator('[data-testid="kpi-grid"] .ht-header-row .ht-cell').count();
+    expect(heroCells).toBe(5);
+    const heroLabels = await page.locator('[data-testid="kpi-grid"] .ht-header-row .ht-cell').allTextContents();
+    const labelText = heroLabels.join(' ');
+    expect(labelText).toContain('종합 등급');
+    expect(labelText).toContain('오퍼 금액');
+    expect(labelText).toContain('매입율');
+    expect(labelText).toContain('총 SKU');
+    expect(labelText).toContain('총 수량');
+
+    // 전체 행 (큰 숫자 5개)
+    const totalCells = await page.locator('[data-testid="kpi-grid"] .ht-total-row .ht-cell').count();
+    expect(totalCells).toBe(5);
+
+    // 정보 칩 3그룹 (카테고리/성별/시즌, 1줄)
+    const filterRows = await page.locator('[data-testid="filter-chips"] .filter-row').count();
+    expect(filterRows).toBe(3);
+    // 정보 칩 — present/absent 클래스 두 종류 모두 존재
+    const presentChips = await page.locator('[data-testid="filter-chips"] .info-chip.present').count();
+    const allChips     = await page.locator('[data-testid="filter-chips"] .info-chip').count();
+    expect(allChips).toBe(10 + 5 + 3); // 카테고리 10 + 성별 5 + 시즌 3
+    expect(presentChips).toBeGreaterThan(0);
+
+    // 진단 텍스트 — 서술형 단락 (3개)
+    const diagParas = await page.locator('[data-testid="diagnosis-text"] .diag-prose p').count();
+    expect(diagParas).toBeGreaterThanOrEqual(2);
+
+    // 보조 KPI 4종 (대시보드 탭 안)
     await page.locator('[data-tab="dashboard"]').click();
-    const kpis = await page.locator('[data-testid="kpi-grid"] .kpi').count();
-    expect(kpis).toBe(8);
-    // 각 KPI 라벨 텍스트 점검 (대표 4개)
-    const labels = await page.locator('[data-testid="kpi-grid"] .kpi-label').allTextContents();
-    expect(labels).toEqual(expect.arrayContaining([
-      '총 SKU', '총 수량', '가중평균 매입율', '가중평균 점수',
-      '위험 SKU', '가격모순', '중심가 매칭률'
+    const secondary = await page.locator('[data-testid="kpi-grid-secondary"] .kpi').count();
+    expect(secondary).toBe(4);
+    const secondaryLabels = await page.locator('[data-testid="kpi-grid-secondary"] .kpi-label').allTextContents();
+    expect(secondaryLabels).toEqual(expect.arrayContaining([
+      '가중평균 점수', '위험 SKU', '가격모순', '중심가 매칭률'
     ]));
   });
 

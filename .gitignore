@@ -7,3 +7,8 @@ node_modules/
 Thumbs.db
 UsersKJY9380Desktop*.ps1
 UsersKJY9380Desktop*.vbs
+
+# Claude/Cowork local settings
+.claude/
+smart-buy/.claude/
+smart-buy/skills-lock.json
