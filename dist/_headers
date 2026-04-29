@@ -1,0 +1,11 @@
+# smart-buy 정적 자산 — 짧은 캐시 (디버그·갱신 빠르게)
+/smart-buy/*
+  Cache-Control: public, max-age=60, must-revalidate
+
+# JS/CSS는 강제 재검증 (라운드별 코드 변경이 즉시 보이게)
+/smart-buy/*.js
+  Cache-Control: public, max-age=0, must-revalidate
+/smart-buy/*.css
+  Cache-Control: public, max-age=0, must-revalidate
+/smart-buy/index.html
+  Cache-Control: public, max-age=0, must-revalidate

@@ -1,0 +1,8 @@
+# Cloudflare Pages 라우팅 — SPA fallback 방지
+# /smart-buy/* 경로는 dist/smart-buy/ 폴더 안의 정적 자산을 그대로 서빙
+
+# 1. /smart-buy (trailing slash 없음) → /smart-buy/ 로 정규화
+/smart-buy    /smart-buy/    301
+
+# 2. /smart-buy/ 경로의 모든 요청은 그 경로의 정적 파일 그대로 (splat 매칭)
+/smart-buy/*  /smart-buy/:splat  200
