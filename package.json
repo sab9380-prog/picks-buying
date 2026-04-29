@@ -1,0 +1,8 @@
+{
+  "name": "picks-buying",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/sync-dist.mjs"
+  }
+}
